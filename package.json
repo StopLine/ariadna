@@ -12,6 +12,23 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ariadna",
+          "title": "Ariadna",
+          "icon": "resources/ariadna-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "ariadna": [
+        {
+          "id": "ariadnaView",
+          "name": "Ariadna"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "ariadna.helloWorld",
