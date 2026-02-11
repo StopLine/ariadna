@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-02-11 17:43
+
+### Added
+- Контекстное меню «Update from Editor» на элементе `srcLink` в панели Node Details — обновляет `srcLink` узла из текущей позиции активного редактора (путь, номер строки, содержимое строки)
+- Команда `ariadna.updateSrcLink` с привязкой к `view/item/context` (inline) при `viewItem == srcLinkField`
+- Метод `refresh()` в `AriadnaTreeDataProvider` для принудительного обновления основного дерева
+
+### Changed
+- Навигация `ariadna.selectNode` корректно обрабатывает абсолютные пути в `srcLink.path` (через `path.isAbsolute()`)
+- `NodeDetailTreeProvider` хранит текущий узел (`currentNode`) и устанавливает `contextValue = 'srcLinkField'` для элемента srcLink
+
 ## 2026-02-11 17:15
 
 ### Added

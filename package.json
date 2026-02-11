@@ -46,6 +46,10 @@
       {
         "command": "ariadna.selectNode",
         "title": "Select Node"
+      },
+      {
+        "command": "ariadna.updateSrcLink",
+        "title": "Update from Editor"
       }
     ],
     "menus": {
@@ -54,6 +58,13 @@
           "command": "ariadna.loadThread",
           "when": "view == ariadnaView",
           "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "ariadna.updateSrcLink",
+          "when": "view == ariadnaDetail && viewItem == srcLinkField",
+          "group": "inline"
         }
       ]
     }

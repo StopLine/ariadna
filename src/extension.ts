@@ -21,6 +21,10 @@ class AriadnaTreeDataProvider implements vscode.TreeDataProvider<TreeElement> {
         this._onDidChangeTreeData.fire();
     }
 
+    refresh(): void {
+        this._onDidChangeTreeData.fire();
+    }
+
     getTreeItem(element: TreeElement): vscode.TreeItem {
         if (isThread(element)) {
             const item = new vscode.TreeItem(
@@ -66,11 +70,13 @@ type DetailItem = { label: string; value?: string; children?: DetailItem[] };
 
 class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
     private items: DetailItem[] = [];
+    currentNode: Node | null = null;
 
     private _onDidChangeTreeData = new vscode.EventEmitter<DetailItem | undefined | void>();
     readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
     showNode(node: Node): void {
+        this.currentNode = node;
         const items: DetailItem[] = [
             { label: 'id', value: String(node.id) },
             { label: 'parentId', value: node.parentId === null ? 'null' : String(node.parentId) },
@@ -122,6 +128,9 @@ class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
         );
         if (element.value !== undefined) {
             item.description = element.value;
+        }
+        if (element.label === 'srcLink' && hasChildren) {
+            item.contextValue = 'srcLinkField';
         }
         return item;
     }
@@ -195,7 +204,10 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('ariadna.selectNode', async (node: Node) => {
             detailProvider.showNode(node);
             if (node.srcLink && currentThread?.rootPath) {
-                const filePath = path.join(currentThread.rootPath, node.srcLink.path);
+                const isAbsolute = path.isAbsolute(node.srcLink.path);
+                const filePath = isAbsolute
+                    ? node.srcLink.path
+                    : path.join(currentThread.rootPath, node.srcLink.path);
                 const uri = vscode.Uri.file(filePath);
                 const line = Math.max(node.srcLink.lineNum - 1, 0);
                 const range = new vscode.Range(line, 0, line, 0);
@@ -204,6 +216,25 @@ export function activate(context: vscode.ExtensionContext) {
                     preserveFocus: false,
                 });
             }
+        }),
+        vscode.commands.registerCommand('ariadna.updateSrcLink', () => {
+            const node = detailProvider.currentNode;
+            if (!node || !currentThread) {
+                return;
+            }
+            const editor = vscode.window.activeTextEditor;
+            if (!editor) {
+                return;
+            }
+            const fsPath = editor.document.uri.fsPath;
+            const srcPath = currentThread.rootPath && fsPath.startsWith(currentThread.rootPath)
+                ? path.relative(currentThread.rootPath, fsPath)
+                : fsPath;
+            const lineNum = editor.selection.active.line + 1;
+            const lineContent = editor.document.lineAt(lineNum - 1).text;
+            node.srcLink = { path: srcPath, lineNum, lineContent };
+            detailProvider.showNode(node);
+            treeDataProvider.refresh();
         }),
     );
 }
