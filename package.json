@@ -59,6 +59,22 @@
       {
         "command": "ariadna.editComment",
         "title": "Edit Comment"
+      },
+      {
+        "command": "ariadna.addChildNode",
+        "title": "Add Child"
+      },
+      {
+        "command": "ariadna.insertNodeBefore",
+        "title": "Insert Before"
+      },
+      {
+        "command": "ariadna.insertNodeAfter",
+        "title": "Insert After"
+      },
+      {
+        "command": "ariadna.deleteNode",
+        "title": "Delete"
       }
     ],
     "menus": {
@@ -79,6 +95,31 @@
           "command": "ariadna.updateSrcLink",
           "when": "view == ariadnaDetail && viewItem == srcLinkField",
           "group": "inline"
+        },
+        {
+          "command": "ariadna.addChildNode",
+          "when": "view == ariadnaView && viewItem == threadItem",
+          "group": "1_add"
+        },
+        {
+          "command": "ariadna.addChildNode",
+          "when": "view == ariadnaView && viewItem == nodeItem",
+          "group": "1_add"
+        },
+        {
+          "command": "ariadna.insertNodeBefore",
+          "when": "view == ariadnaView && viewItem == nodeItem",
+          "group": "1_add"
+        },
+        {
+          "command": "ariadna.insertNodeAfter",
+          "when": "view == ariadnaView && viewItem == nodeItem",
+          "group": "1_add"
+        },
+        {
+          "command": "ariadna.deleteNode",
+          "when": "view == ariadnaView && viewItem == nodeItem",
+          "group": "2_delete"
         }
       ]
     }

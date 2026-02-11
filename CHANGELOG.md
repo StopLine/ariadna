@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-02-11 23:04
+
+### Added
+- Контекстное меню для узлов в дереве `ariadnaView`:
+  - **Add Child** — добавить дочерний узел (доступно для Thread и Node)
+  - **Insert Before** — вставить узел перед выбранным (только для Node)
+  - **Insert After** — вставить узел после выбранного (только для Node)
+  - **Delete** — удалить узел с подтверждением, если есть дочерние элементы (только для Node)
+- Команды: `ariadna.addChildNode`, `ariadna.insertNodeBefore`, `ariadna.insertNodeAfter`, `ariadna.deleteNode`
+- Вспомогательные функции в `extension.ts`:
+  - `nextNodeId()` — генерация уникального ID для нового узла
+  - `findParentContainer()` — поиск родительского массива и индекса узла в дереве
+  - `createEmptyNode()` — создание нового узла с caption "New node"
+- Файл `.eslintrc.json` — базовая конфигурация ESLint для проекта
+
+### Changed
+- `AriadnaTreeDataProvider.getTreeItem()`: установлен `contextValue = 'threadItem'` для Thread и `contextValue = 'nodeItem'` для Node (необходимо для работы контекстного меню)
+- `package.json`: добавлены 4 новые команды и пункты меню `view/item/context` с условиями `viewItem`
+
 ## 2026-02-11 22:48
 
 ### Changed

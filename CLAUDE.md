@@ -46,3 +46,6 @@ The data model exists in both Python (Pydantic, in `data/`) and TypeScript. The 
 - не используй vscode-test
 
 - при коммите не забудь добавить новые файл из @.claude из папки проекта, за исключением @settings.local.json
+
+- записывай план в @.claude в папке проекта, а не на уровне пользователя
+

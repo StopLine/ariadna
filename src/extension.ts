@@ -35,6 +35,7 @@ class AriadnaTreeDataProvider implements vscode.TreeDataProvider<TreeElement> {
                     : vscode.TreeItemCollapsibleState.None,
             );
             item.tooltip = element.description ?? undefined;
+            item.contextValue = 'threadItem';
             return item;
         }
 
@@ -53,6 +54,7 @@ class AriadnaTreeDataProvider implements vscode.TreeDataProvider<TreeElement> {
             title: 'Select Node',
             arguments: [node],
         };
+        item.contextValue = 'nodeItem';
         return item;
     }
 
@@ -154,6 +156,48 @@ class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
 
 let treeDataProvider: AriadnaTreeDataProvider;
 let detailProvider: NodeDetailTreeProvider;
+
+function nextNodeId(thread: AriadnaThread): number {
+    let maxId = 0;
+    function traverse(nodes: Node[]): void {
+        for (const node of nodes) {
+            if (node.id > maxId) {
+                maxId = node.id;
+            }
+            traverse(node.childs);
+        }
+    }
+    traverse(thread.childs);
+    return maxId + 1;
+}
+
+function findParentContainer(thread: AriadnaThread, nodeId: number): { childs: Node[], index: number } | null {
+    function search(childs: Node[]): { childs: Node[], index: number } | null {
+        for (let i = 0; i < childs.length; i++) {
+            if (childs[i].id === nodeId) {
+                return { childs, index: i };
+            }
+            const found = search(childs[i].childs);
+            if (found) {
+                return found;
+            }
+        }
+        return null;
+    }
+    return search(thread.childs);
+}
+
+function createEmptyNode(thread: AriadnaThread, parentId: number | null): Node {
+    return {
+        id: nextNodeId(thread),
+        parentId,
+        srcLink: null,
+        caption: 'New node',
+        comments: [],
+        visualMarks: [],
+        childs: [],
+    };
+}
 
 async function loadThread(): Promise<void> {
     const uris = await vscode.window.showOpenDialog({
@@ -279,6 +323,60 @@ export function activate(context: vscode.ExtensionContext) {
                 node.comments[index] = newText;
                 detailProvider.showNode(node);
             }
+        }),
+        vscode.commands.registerCommand('ariadna.addChildNode', (element: TreeElement) => {
+            if (!currentThread) {
+                return;
+            }
+            const parentId = isThread(element) ? null : element.id;
+            const newNode = createEmptyNode(currentThread, parentId);
+            element.childs.push(newNode);
+            treeDataProvider.refresh();
+        }),
+        vscode.commands.registerCommand('ariadna.insertNodeBefore', (node: Node) => {
+            if (!currentThread) {
+                return;
+            }
+            const container = findParentContainer(currentThread, node.id);
+            if (!container) {
+                return;
+            }
+            const newNode = createEmptyNode(currentThread, node.parentId);
+            container.childs.splice(container.index, 0, newNode);
+            treeDataProvider.refresh();
+        }),
+        vscode.commands.registerCommand('ariadna.insertNodeAfter', (node: Node) => {
+            if (!currentThread) {
+                return;
+            }
+            const container = findParentContainer(currentThread, node.id);
+            if (!container) {
+                return;
+            }
+            const newNode = createEmptyNode(currentThread, node.parentId);
+            container.childs.splice(container.index + 1, 0, newNode);
+            treeDataProvider.refresh();
+        }),
+        vscode.commands.registerCommand('ariadna.deleteNode', async (node: Node) => {
+            if (!currentThread) {
+                return;
+            }
+            if (node.childs.length > 0) {
+                const answer = await vscode.window.showWarningMessage(
+                    `Node "${node.caption}" has ${node.childs.length} child(ren). Delete anyway?`,
+                    { modal: true },
+                    'Delete',
+                );
+                if (answer !== 'Delete') {
+                    return;
+                }
+            }
+            const container = findParentContainer(currentThread, node.id);
+            if (!container) {
+                return;
+            }
+            container.childs.splice(container.index, 1);
+            treeDataProvider.refresh();
         }),
     );
 }
