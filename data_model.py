@@ -42,7 +42,7 @@ class AriadnaThread(BaseModel):
     title: str = Field(description="Название треда")
     root_path: str = Field('/', description="Родительский каталог для исходного кода")
     description: Comment | None = Field(None, description="Описание треда")
-    root: Node | None = Field(None, description="Корень дерева узвлов")
+    childs: list[Node] = Field([], description="Список дочерних узлов дерева")
     vcs_rev: str | None = Field(None, description="Ревизия системы контроля версий, "
                                 "для которой актулен данный тред")
     current_node_id: int | None = Field(None, description="Идентификатор текущего узла. Если задан, перехоим сюда при открытии документа")
@@ -57,7 +57,7 @@ def build_sample1() -> AriadnaThread:
         root_path='/usr/lib/python3.14'
     )
     node_cnt = 0
-    thread.root = Node(
+    root = Node(
         id = node_cnt,
         caption="Реализация декоратора",
         src_link = SrcLink(
@@ -67,6 +67,7 @@ def build_sample1() -> AriadnaThread:
             comments=["TODO: разобрать реализацию алгоритма LRU"]
         ),
     )
+    thread.childs.append(root)
     node_cnt += 1
 
     child1 = Node(
@@ -80,7 +81,7 @@ def build_sample1() -> AriadnaThread:
         visual_marks=[vmark_note],
     )
     node_cnt += 1
-    thread.root.childs.append(child1)
+    root.childs.append(child1)
 
     child2 = Node(
         id = node_cnt,
@@ -98,7 +99,7 @@ def build_sample1() -> AriadnaThread:
         ],
     )
     node_cnt += 1
-    thread.root.childs.append(child2)
+    root.childs.append(child2)
 
     return thread
 

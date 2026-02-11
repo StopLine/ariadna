@@ -151,17 +151,14 @@
       "description": "Описание треда",
       "title": "Description"
     },
-    "root": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/Node"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "description": "Корень дерева узвлов"
+    "childs": {
+      "default": [],
+      "description": "Список дочерних узлов дерева",
+      "items": {
+        "$ref": "#/$defs/Node"
+      },
+      "title": "Childs",
+      "type": "array"
     },
     "vcs_rev": {
       "anyOf": [
