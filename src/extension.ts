@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { type AriadnaThread, ValidationError, validateThread } from './model';
+import { type AriadnaThread, ValidationError, validateThread, normalizeThread } from './model';
 
 let currentThread: AriadnaThread | null = null;
 
@@ -28,7 +28,7 @@ async function loadThread(): Promise<void> {
 
     let data: AriadnaThread;
     try {
-        data = JSON.parse(text) as AriadnaThread;
+        data = normalizeThread(JSON.parse(text));
     } catch {
         await vscode.window.showErrorMessage('Failed to parse JSON file', { modal: true });
         return;

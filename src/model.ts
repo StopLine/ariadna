@@ -40,6 +40,47 @@ export interface AriadnaThread {
     currentNodeId: number | null;
 }
 
+// --- Normalization (snake_case JSON → camelCase TS, fill defaults) ---
+
+/** Raw JSON shape (snake_case keys, optional fields) */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type RawObject = Record<string, any>;
+
+export function normalizeSrcLink(raw: RawObject): SrcLink {
+    return {
+        path: raw.path ?? '',
+        lineNum: raw.lineNum ?? raw.line_num ?? 0,
+        lineContent: raw.lineContent ?? raw.line_content ?? '',
+    };
+}
+
+export function normalizeNode(raw: RawObject): Node {
+    return {
+        id: raw.id,
+        parentId: raw.parentId ?? raw.parent_id ?? null,
+        srcLink: raw.srcLink ?? raw.src_link
+            ? normalizeSrcLink(raw.srcLink ?? raw.src_link)
+            : null,
+        caption: raw.caption ?? '',
+        comments: raw.comments ?? [],
+        visualMarks: (raw.visualMarks ?? raw.visual_marks ?? []).map(
+            (m: RawObject) => ({ char: m.char, name: m.name }) as VisualMark,
+        ),
+        childs: (raw.childs ?? []).map((c: RawObject) => normalizeNode(c)),
+    };
+}
+
+export function normalizeThread(raw: RawObject): AriadnaThread {
+    return {
+        title: raw.title ?? '',
+        rootPath: raw.rootPath ?? raw.root_path ?? '/',
+        description: raw.description ?? null,
+        root: raw.root != null ? normalizeNode(raw.root) : null,
+        vcsRev: raw.vcsRev ?? raw.vcs_rev ?? null,
+        currentNodeId: raw.currentNodeId ?? raw.current_node_id ?? null,
+    };
+}
+
 // --- Validation ---
 
 export class ValidationError extends Error {

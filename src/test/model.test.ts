@@ -9,6 +9,9 @@ import {
     validateNode,
     validateThread,
     vmarkNote,
+    normalizeSrcLink,
+    normalizeNode,
+    normalizeThread,
 } from '../model';
 
 suite('Model Validation', () => {
@@ -151,6 +154,106 @@ suite('Model Validation', () => {
                 () => validateThread(makeThread({ root: badRoot })),
                 ValidationError,
             );
+        });
+    });
+
+    // --- Normalization ---
+
+    suite('normalizeSrcLink', () => {
+        test('converts snake_case keys', () => {
+            const result = normalizeSrcLink({ path: 'a.ts', line_num: 10, line_content: 'foo' });
+            assert.strictEqual(result.lineNum, 10);
+            assert.strictEqual(result.lineContent, 'foo');
+        });
+
+        test('fills defaults for missing fields', () => {
+            const result = normalizeSrcLink({});
+            assert.strictEqual(result.path, '');
+            assert.strictEqual(result.lineNum, 0);
+            assert.strictEqual(result.lineContent, '');
+        });
+
+        test('prefers camelCase over snake_case', () => {
+            const result = normalizeSrcLink({ lineNum: 5, line_num: 99 });
+            assert.strictEqual(result.lineNum, 5);
+        });
+    });
+
+    suite('normalizeNode', () => {
+        test('fills defaults for missing optional fields', () => {
+            const result = normalizeNode({ id: 1 });
+            assert.strictEqual(result.parentId, null);
+            assert.strictEqual(result.srcLink, null);
+            assert.strictEqual(result.caption, '');
+            assert.deepStrictEqual(result.comments, []);
+            assert.deepStrictEqual(result.visualMarks, []);
+            assert.deepStrictEqual(result.childs, []);
+        });
+
+        test('converts snake_case keys', () => {
+            const result = normalizeNode({
+                id: 1,
+                parent_id: 0,
+                src_link: { path: 'a.ts', line_num: 1, line_content: 'x' },
+                visual_marks: [{ char: '!', name: 'bang' }],
+            });
+            assert.strictEqual(result.parentId, 0);
+            assert.strictEqual(result.srcLink!.lineNum, 1);
+            assert.strictEqual(result.visualMarks[0].char, '!');
+        });
+
+        test('normalizes children recursively', () => {
+            const result = normalizeNode({
+                id: 0,
+                childs: [{ id: 1, childs: [{ id: 2 }] }],
+            });
+            assert.strictEqual(result.childs[0].childs[0].id, 2);
+            assert.strictEqual(result.childs[0].childs[0].caption, '');
+        });
+    });
+
+    suite('normalizeThread', () => {
+        test('fills defaults for missing optional fields', () => {
+            const result = normalizeThread({ title: 'Test' });
+            assert.strictEqual(result.rootPath, '/');
+            assert.strictEqual(result.description, null);
+            assert.strictEqual(result.root, null);
+            assert.strictEqual(result.vcsRev, null);
+            assert.strictEqual(result.currentNodeId, null);
+        });
+
+        test('converts snake_case keys', () => {
+            const result = normalizeThread({
+                title: 'T',
+                root_path: '/src',
+                vcs_rev: 'abc123',
+                current_node_id: 5,
+            });
+            assert.strictEqual(result.rootPath, '/src');
+            assert.strictEqual(result.vcsRev, 'abc123');
+            assert.strictEqual(result.currentNodeId, 5);
+        });
+
+        test('normalizes nested root node', () => {
+            const result = normalizeThread({
+                title: 'T',
+                root: {
+                    id: 0,
+                    src_link: { path: 'f.ts', line_num: 42, line_content: 'hi' },
+                    visual_marks: [{ char: '!', name: 'x' }],
+                },
+            });
+            assert.strictEqual(result.root!.srcLink!.lineNum, 42);
+            assert.strictEqual(result.root!.visualMarks[0].char, '!');
+            assert.deepStrictEqual(result.root!.comments, []);
+        });
+
+        test('normalized thread passes validation', () => {
+            const result = normalizeThread({
+                title: 'Minimal',
+                root: { id: 0 },
+            });
+            assert.doesNotThrow(() => validateThread(result));
         });
     });
 });

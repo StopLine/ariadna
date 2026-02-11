@@ -1,6 +1,13 @@
 # Changelog
 
-## [Unreleased] — 2026-02-11 ~15:40
+## [Unreleased] — 2026-02-11
+
+### Fixed
+- Нормализация JSON при загрузке треда: конвертация snake_case → camelCase и заполнение дефолтов для необязательных полей (соответствие Python/Pydantic модели)
+- Добавлены функции `normalizeSrcLink`, `normalizeNode`, `normalizeThread` в `model.ts`
+- 10 новых тестов на нормализацию
+
+## 2f8b020 — 2026-02-11 ~15:40
 
 ### Added
 - Команда `ariadna.loadThread` — загрузка треда из JSON-файла через стандартный диалог выбора файла
