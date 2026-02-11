@@ -33,8 +33,22 @@
       {
         "command": "ariadna.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "ariadna.loadThread",
+        "title": "Load Thread",
+        "icon": "$(folder-opened)"
       }
-    ]
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "ariadna.loadThread",
+          "when": "view == ariadnaView",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
