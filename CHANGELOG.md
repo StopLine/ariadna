@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-02-11 18:02
+
+### Added
+- Кнопка «Save Thread» (иконка `$(save)`) в заголовке sidebar рядом с кнопкой загрузки
+- Команда `ariadna.saveThread` — сохранение текущего треда в JSON-файл через `showSaveDialog`
+- Функции сериализации `serializeNode()` и `serializeThread()` в `model.ts` (camelCase → snake_case JSON)
+- Запоминание пути загруженного файла (`lastLoadedUri`) — диалог сохранения по умолчанию открывается в папке исходного файла с подставленным именем
+
 ## 2026-02-11 17:43
 
 ### Added

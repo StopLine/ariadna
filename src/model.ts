@@ -81,6 +81,35 @@ export function normalizeThread(raw: RawObject): AriadnaThread {
     };
 }
 
+// --- Serialization (camelCase TS → snake_case JSON) ---
+
+export function serializeNode(node: Node): RawObject {
+    return {
+        id: node.id,
+        parent_id: node.parentId,
+        src_link: node.srcLink ? {
+            path: node.srcLink.path,
+            line_num: node.srcLink.lineNum,
+            line_content: node.srcLink.lineContent,
+        } : null,
+        caption: node.caption,
+        comments: node.comments,
+        visual_marks: node.visualMarks.map(m => ({ char: m.char, name: m.name })),
+        childs: node.childs.map(c => serializeNode(c)),
+    };
+}
+
+export function serializeThread(thread: AriadnaThread): RawObject {
+    return {
+        title: thread.title,
+        root_path: thread.rootPath,
+        description: thread.description,
+        root: thread.root ? serializeNode(thread.root) : null,
+        vcs_rev: thread.vcsRev,
+        current_node_id: thread.currentNodeId,
+    };
+}
+
 // --- Validation ---
 
 export class ValidationError extends Error {

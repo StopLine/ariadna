@@ -1,8 +1,9 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { type AriadnaThread, type Node, ValidationError, validateThread, normalizeThread } from './model';
+import { type AriadnaThread, type Node, ValidationError, validateThread, normalizeThread, serializeThread } from './model';
 
 let currentThread: AriadnaThread | null = null;
+let lastLoadedUri: vscode.Uri | null = null;
 
 type TreeElement = AriadnaThread | Node;
 
@@ -184,6 +185,7 @@ async function loadThread(): Promise<void> {
         return;
     }
 
+    lastLoadedUri = uris[0];
     currentThread = data;
     treeDataProvider.setThread(data);
     vscode.window.showInformationMessage(`Thread "${data.title}" loaded`);
@@ -201,6 +203,25 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.showInformationMessage('Hello World from Ariadna!');
         }),
         vscode.commands.registerCommand('ariadna.loadThread', loadThread),
+        vscode.commands.registerCommand('ariadna.saveThread', async () => {
+            if (!currentThread) {
+                vscode.window.showWarningMessage('No thread loaded');
+                return;
+            }
+            const uri = await vscode.window.showSaveDialog({
+                defaultUri: lastLoadedUri ?? undefined,
+                filters: { 'Ariadna Thread': ['json'] },
+                title: 'Save Ariadna Thread',
+            });
+            if (!uri) {
+                return;
+            }
+            const data = serializeThread(currentThread);
+            const json = JSON.stringify(data, null, 2) + '\n';
+            await vscode.workspace.fs.writeFile(uri, Buffer.from(json, 'utf-8'));
+            lastLoadedUri = uri;
+            vscode.window.showInformationMessage(`Thread saved to ${path.basename(uri.fsPath)}`);
+        }),
         vscode.commands.registerCommand('ariadna.selectNode', async (node: Node) => {
             detailProvider.showNode(node);
             if (node.srcLink && currentThread?.rootPath) {

@@ -50,12 +50,22 @@
       {
         "command": "ariadna.updateSrcLink",
         "title": "Update from Editor"
+      },
+      {
+        "command": "ariadna.saveThread",
+        "title": "Save Thread",
+        "icon": "$(save)"
       }
     ],
     "menus": {
       "view/title": [
         {
           "command": "ariadna.loadThread",
+          "when": "view == ariadnaView",
+          "group": "navigation"
+        },
+        {
+          "command": "ariadna.saveThread",
           "when": "view == ariadnaView",
           "group": "navigation"
         }
