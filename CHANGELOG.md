@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-02-11 17:07
+
+### Added
+- Панель «Node Details» (`ariadnaDetail`) в нижней части sidebar — второй TreeView, отображающий свойства выбранного узла (id, parentId, caption, srcLink, comments, visualMarks) как дерево ключ-значение
+- `NodeDetailTreeProvider` в `extension.ts` — провайдер данных для панели деталей
+- Команда `ariadna.selectNode` — обновляет панель деталей при клике на узел в основном дереве
+- `item.command` на элементах-узлах основного дерева для вызова `ariadna.selectNode`
+
 ## 2026-02-11 17:01
 
 ### Added

@@ -26,6 +26,10 @@
         {
           "id": "ariadnaView",
           "name": "Ariadna"
+        },
+        {
+          "id": "ariadnaDetail",
+          "name": "Node Details"
         }
       ]
     },
@@ -38,6 +42,10 @@
         "command": "ariadna.loadThread",
         "title": "Load Thread",
         "icon": "$(folder-opened)"
+      },
+      {
+        "command": "ariadna.selectNode",
+        "title": "Select Node"
       }
     ],
     "menus": {

@@ -42,6 +42,11 @@ class AriadnaTreeDataProvider implements vscode.TreeDataProvider<TreeElement> {
         if (node.srcLink) {
             item.description = `${node.srcLink.path}:${node.srcLink.lineNum}`;
         }
+        item.command = {
+            command: 'ariadna.selectNode',
+            title: 'Select Node',
+            arguments: [node],
+        };
         return item;
     }
 
@@ -56,7 +61,80 @@ class AriadnaTreeDataProvider implements vscode.TreeDataProvider<TreeElement> {
     }
 }
 
+type DetailItem = { label: string; value?: string; children?: DetailItem[] };
+
+class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
+    private items: DetailItem[] = [];
+
+    private _onDidChangeTreeData = new vscode.EventEmitter<DetailItem | undefined | void>();
+    readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
+
+    showNode(node: Node): void {
+        const items: DetailItem[] = [
+            { label: 'id', value: String(node.id) },
+            { label: 'parentId', value: node.parentId === null ? 'null' : String(node.parentId) },
+            { label: 'caption', value: node.caption },
+        ];
+
+        if (node.srcLink) {
+            items.push({
+                label: 'srcLink',
+                children: [
+                    { label: 'path', value: node.srcLink.path },
+                    { label: 'lineNum', value: String(node.srcLink.lineNum) },
+                    { label: 'lineContent', value: node.srcLink.lineContent },
+                ],
+            });
+        } else {
+            items.push({ label: 'srcLink', value: 'null' });
+        }
+
+        if (node.comments.length > 0) {
+            items.push({
+                label: 'comments',
+                children: node.comments.map((c, i) => ({ label: `[${i}]`, value: c })),
+            });
+        } else {
+            items.push({ label: 'comments', value: '(empty)' });
+        }
+
+        if (node.visualMarks.length > 0) {
+            items.push({
+                label: 'visualMarks',
+                children: node.visualMarks.map((m, i) => ({ label: `[${i}]`, value: `${m.char} ${m.name}` })),
+            });
+        } else {
+            items.push({ label: 'visualMarks', value: '(empty)' });
+        }
+
+        this.items = items;
+        this._onDidChangeTreeData.fire();
+    }
+
+    getTreeItem(element: DetailItem): vscode.TreeItem {
+        const hasChildren = element.children && element.children.length > 0;
+        const item = new vscode.TreeItem(
+            element.label,
+            hasChildren
+                ? vscode.TreeItemCollapsibleState.Expanded
+                : vscode.TreeItemCollapsibleState.None,
+        );
+        if (element.value !== undefined) {
+            item.description = element.value;
+        }
+        return item;
+    }
+
+    getChildren(element?: DetailItem): DetailItem[] {
+        if (!element) {
+            return this.items;
+        }
+        return element.children ?? [];
+    }
+}
+
 let treeDataProvider: AriadnaTreeDataProvider;
+let detailProvider: NodeDetailTreeProvider;
 
 async function loadThread(): Promise<void> {
     const uris = await vscode.window.showOpenDialog({
@@ -105,11 +183,17 @@ export function activate(context: vscode.ExtensionContext) {
     treeDataProvider = new AriadnaTreeDataProvider();
     vscode.window.registerTreeDataProvider('ariadnaView', treeDataProvider);
 
+    detailProvider = new NodeDetailTreeProvider();
+    vscode.window.registerTreeDataProvider('ariadnaDetail', detailProvider);
+
     context.subscriptions.push(
         vscode.commands.registerCommand('ariadna.helloWorld', () => {
             vscode.window.showInformationMessage('Hello World from Ariadna!');
         }),
         vscode.commands.registerCommand('ariadna.loadThread', loadThread),
+        vscode.commands.registerCommand('ariadna.selectNode', (node: Node) => {
+            detailProvider.showNode(node);
+        }),
     );
 }
 
