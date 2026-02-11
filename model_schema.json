@@ -1,0 +1,198 @@
+{
+  "$defs": {
+    "Node": {
+      "properties": {
+        "id": {
+          "description": "Уникальный идентификатор узла",
+          "title": "Id",
+          "type": "integer"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Идентификатор родительского узла",
+          "title": "Parent Id"
+        },
+        "src_link": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SrcLink"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Ссылка на место в исходном коде"
+        },
+        "caption": {
+          "default": "",
+          "description": "Название узла",
+          "title": "Caption",
+          "type": "string"
+        },
+        "comments": {
+          "default": [],
+          "description": "Список комментариев",
+          "items": {
+            "maxLength": 255,
+            "type": "string"
+          },
+          "title": "Comments",
+          "type": "array"
+        },
+        "visual_marks": {
+          "default": [],
+          "description": "Список визуальных меток",
+          "items": {
+            "$ref": "#/$defs/VisualMark"
+          },
+          "title": "Visual Marks",
+          "type": "array"
+        },
+        "childs": {
+          "default": [],
+          "description": "Список дочерних узлов дерева",
+          "items": {
+            "$ref": "#/$defs/Node"
+          },
+          "title": "Childs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "Node",
+      "type": "object"
+    },
+    "SrcLink": {
+      "description": "Ссылка на место в исходном коде",
+      "properties": {
+        "path": {
+          "default": "",
+          "description": "Путь к исходному файлу",
+          "title": "Path",
+          "type": "string"
+        },
+        "line_num": {
+          "default": 0,
+          "description": "Номер строки",
+          "title": "Line Num",
+          "type": "integer"
+        },
+        "line_content": {
+          "default": "",
+          "description": "Ожидаемое содержимое строки",
+          "title": "Line Content",
+          "type": "string"
+        }
+      },
+      "title": "SrcLink",
+      "type": "object"
+    },
+    "VisualMark": {
+      "description": "Визуальная метка. Юникодный символ или эмодзи",
+      "properties": {
+        "char": {
+          "description": "Юникодная строка, представляющая метку",
+          "maxLength": 4,
+          "minLength": 1,
+          "title": "Char",
+          "type": "string"
+        },
+        "name": {
+          "description": "Название метки",
+          "maxLength": 20,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "char",
+        "name"
+      ],
+      "title": "VisualMark",
+      "type": "object"
+    }
+  },
+  "description": "Модель треда",
+  "properties": {
+    "title": {
+      "description": "Название треда",
+      "title": "Title",
+      "type": "string"
+    },
+    "root_path": {
+      "default": "/",
+      "description": "Родительский каталог для исходного кода",
+      "title": "Root Path",
+      "type": "string"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "maxLength": 255,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Описание треда",
+      "title": "Description"
+    },
+    "root": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Node"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Корень дерева узвлов"
+    },
+    "vcs_rev": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Ревизия системы контроля версий, для которой актулен данный тред",
+      "title": "Vcs Rev"
+    },
+    "current_node_id": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Идентификатор текущего узла. Если задан, перехоим сюда при открытии документа",
+      "title": "Current Node Id"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "title": "AriadnaThread",
+  "type": "object"
+}
