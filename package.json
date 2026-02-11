@@ -61,6 +61,10 @@
         "title": "Edit Comment"
       },
       {
+        "command": "ariadna.editCaption",
+        "title": "Edit Caption"
+      },
+      {
         "command": "ariadna.addChildNode",
         "title": "Add Child"
       },

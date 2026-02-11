@@ -140,6 +140,12 @@ class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
                 arguments: [element.commentIndex],
             };
         }
+        if (element.label === 'caption') {
+            item.command = {
+                command: 'ariadna.editCaption',
+                title: 'Edit Caption',
+            };
+        }
         if (element.label === 'srcLink') {
             item.contextValue = 'srcLinkField';
         }
@@ -322,6 +328,22 @@ export function activate(context: vscode.ExtensionContext) {
             if (newText !== undefined) {
                 node.comments[index] = newText;
                 detailProvider.showNode(node);
+            }
+        }),
+        vscode.commands.registerCommand('ariadna.editCaption', async () => {
+            const node = detailProvider.currentNode;
+            if (!node) {
+                return;
+            }
+            const newCaption = await vscode.window.showInputBox({
+                value: node.caption,
+                prompt: 'Edit caption',
+                validateInput: (v) => !v || v.trim().length === 0 ? 'Caption cannot be empty' : undefined,
+            });
+            if (newCaption !== undefined && newCaption.trim().length > 0) {
+                node.caption = newCaption;
+                detailProvider.showNode(node);
+                treeDataProvider.refresh();
             }
         }),
         vscode.commands.registerCommand('ariadna.addChildNode', (element: TreeElement) => {
