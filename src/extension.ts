@@ -140,7 +140,7 @@ class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
                 arguments: [element.commentIndex],
             };
         }
-        if (element.label === 'srcLink' && hasChildren) {
+        if (element.label === 'srcLink') {
             item.contextValue = 'srcLinkField';
         }
         return item;
