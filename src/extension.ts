@@ -1,3 +1,4 @@
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { type AriadnaThread, type Node, ValidationError, validateThread, normalizeThread } from './model';
 
@@ -191,8 +192,18 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.showInformationMessage('Hello World from Ariadna!');
         }),
         vscode.commands.registerCommand('ariadna.loadThread', loadThread),
-        vscode.commands.registerCommand('ariadna.selectNode', (node: Node) => {
+        vscode.commands.registerCommand('ariadna.selectNode', async (node: Node) => {
             detailProvider.showNode(node);
+            if (node.srcLink && currentThread?.rootPath) {
+                const filePath = path.join(currentThread.rootPath, node.srcLink.path);
+                const uri = vscode.Uri.file(filePath);
+                const line = Math.max(node.srcLink.lineNum - 1, 0);
+                const range = new vscode.Range(line, 0, line, 0);
+                await vscode.window.showTextDocument(uri, {
+                    selection: range,
+                    preserveFocus: false,
+                });
+            }
         }),
     );
 }
