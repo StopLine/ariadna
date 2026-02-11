@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-02-11 22:48
+
+### Changed
+- Модель `AriadnaThread`: поле `root: Node | null` заменено на `childs: Node[]` — теперь на верхнем уровне треда может быть несколько корневых узлов (синхронизация с Python-моделью)
+- `src/model.ts`: обновлены функции `normalizeThread()`, `serializeThread()`, `validateThread()` для работы с массивом `childs`
+- `src/extension.ts`: `AriadnaTreeDataProvider.getTreeItem()` и `getChildren()` теперь проверяют `element.childs.length > 0` вместо `element.root`
+- `src/test/model.test.ts`: все тесты обновлены для работы с `childs` вместо `root`
+
 ## 2026-02-11 18:32
 
 ### Changed

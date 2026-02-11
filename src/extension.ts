@@ -30,7 +30,7 @@ class AriadnaTreeDataProvider implements vscode.TreeDataProvider<TreeElement> {
         if (isThread(element)) {
             const item = new vscode.TreeItem(
                 element.title,
-                element.root
+                element.childs.length > 0
                     ? vscode.TreeItemCollapsibleState.Expanded
                     : vscode.TreeItemCollapsibleState.None,
             );
@@ -61,7 +61,7 @@ class AriadnaTreeDataProvider implements vscode.TreeDataProvider<TreeElement> {
             return this.thread ? [this.thread] : [];
         }
         if (isThread(element)) {
-            return element.root ? [element.root] : [];
+            return element.childs;
         }
         return element.childs;
     }

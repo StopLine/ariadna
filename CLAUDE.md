@@ -40,3 +40,9 @@ The thread JSON format (see `data/model_schema.json` and `data/sample1_data.json
 ## Dual-Language Schema
 
 The data model exists in both Python (Pydantic, in `data/`) and TypeScript. The Python side generates the JSON schema and sample data. Keep these in sync when modifying the model.
+
+## Claude Rules
+
+- не используй vscode-test
+
+- при коммите не забудь добавить новые файл из @.claude из папки проекта, за исключением @settings.local.json

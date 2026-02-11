@@ -123,7 +123,7 @@ suite('Model Validation', () => {
                 title: 'Test thread',
                 rootPath: '/',
                 description: null,
-                root: null,
+                childs: [],
                 vcsRev: null,
                 currentNodeId: null,
                 ...overrides,
@@ -151,7 +151,7 @@ suite('Model Validation', () => {
                 caption: '', comments: [], visualMarks: [], childs: [],
             };
             assert.throws(
-                () => validateThread(makeThread({ root: badRoot })),
+                () => validateThread(makeThread({ childs: [badRoot] })),
                 ValidationError,
             );
         });
@@ -217,7 +217,7 @@ suite('Model Validation', () => {
             const result = normalizeThread({ title: 'Test' });
             assert.strictEqual(result.rootPath, '/');
             assert.strictEqual(result.description, null);
-            assert.strictEqual(result.root, null);
+            assert.deepStrictEqual(result.childs, []);
             assert.strictEqual(result.vcsRev, null);
             assert.strictEqual(result.currentNodeId, null);
         });
@@ -237,21 +237,21 @@ suite('Model Validation', () => {
         test('normalizes nested root node', () => {
             const result = normalizeThread({
                 title: 'T',
-                root: {
+                childs: [{
                     id: 0,
                     src_link: { path: 'f.ts', line_num: 42, line_content: 'hi' },
                     visual_marks: [{ char: '!', name: 'x' }],
-                },
+                }],
             });
-            assert.strictEqual(result.root!.srcLink!.lineNum, 42);
-            assert.strictEqual(result.root!.visualMarks[0].char, '!');
-            assert.deepStrictEqual(result.root!.comments, []);
+            assert.strictEqual(result.childs[0].srcLink!.lineNum, 42);
+            assert.strictEqual(result.childs[0].visualMarks[0].char, '!');
+            assert.deepStrictEqual(result.childs[0].comments, []);
         });
 
         test('normalized thread passes validation', () => {
             const result = normalizeThread({
                 title: 'Minimal',
-                root: { id: 0 },
+                childs: [{ id: 0 }],
             });
             assert.doesNotThrow(() => validateThread(result));
         });

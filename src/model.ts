@@ -35,7 +35,7 @@ export interface AriadnaThread {
     title: string;
     rootPath: string;
     description: Comment | null;
-    root: Node | null;
+    childs: Node[];
     vcsRev: string | null;
     currentNodeId: number | null;
 }
@@ -75,7 +75,7 @@ export function normalizeThread(raw: RawObject): AriadnaThread {
         title: raw.title ?? '',
         rootPath: raw.rootPath ?? raw.root_path ?? '/',
         description: raw.description ?? null,
-        root: raw.root != null ? normalizeNode(raw.root) : null,
+        childs: (raw.childs ?? []).map((c: RawObject) => normalizeNode(c)),
         vcsRev: raw.vcsRev ?? raw.vcs_rev ?? null,
         currentNodeId: raw.currentNodeId ?? raw.current_node_id ?? null,
     };
@@ -104,7 +104,7 @@ export function serializeThread(thread: AriadnaThread): RawObject {
         title: thread.title,
         root_path: thread.rootPath,
         description: thread.description,
-        root: thread.root ? serializeNode(thread.root) : null,
+        childs: thread.childs.map(c => serializeNode(c)),
         vcs_rev: thread.vcsRev,
         current_node_id: thread.currentNodeId,
     };
@@ -159,7 +159,7 @@ export function validateThread(thread: AriadnaThread): void {
     if (thread.description !== null) {
         validateComment(thread.description);
     }
-    if (thread.root !== null) {
-        validateNode(thread.root);
+    for (const child of thread.childs) {
+        validateNode(child);
     }
 }
