@@ -11,11 +11,14 @@ function isThread(element: TreeElement): element is AriadnaThread {
     return 'title' in element && !('caption' in element);
 }
 
-class AriadnaTreeDataProvider implements vscode.TreeDataProvider<TreeElement> {
+class AriadnaTreeDataProvider implements vscode.TreeDataProvider<TreeElement>, vscode.TreeDragAndDropController<TreeElement> {
     private thread: AriadnaThread | null = null;
 
     private _onDidChangeTreeData = new vscode.EventEmitter<TreeElement | undefined | void>();
     readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
+
+    readonly dropMimeTypes = ['application/vnd.code.tree.ariadnaview'];
+    readonly dragMimeTypes = ['application/vnd.code.tree.ariadnaview'];
 
     setThread(thread: AriadnaThread): void {
         this.thread = thread;
@@ -66,6 +69,73 @@ class AriadnaTreeDataProvider implements vscode.TreeDataProvider<TreeElement> {
             return element.childs;
         }
         return element.childs;
+    }
+
+    getParent(element: TreeElement): TreeElement | undefined {
+        if (isThread(element)) {
+            return undefined;
+        }
+        if (!this.thread) {
+            return undefined;
+        }
+        if (element.parentId === null) {
+            return this.thread;
+        }
+        return findNodeById(this.thread, element.parentId) ?? undefined;
+    }
+
+    handleDrag(source: TreeElement[], dataTransfer: vscode.DataTransfer, _token: vscode.CancellationToken): void {
+        const nodes = source.filter((el): el is Node => !isThread(el));
+        if (nodes.length === 0) {
+            return;
+        }
+        dataTransfer.set(
+            'application/vnd.code.tree.ariadnaview',
+            new vscode.DataTransferItem(nodes),
+        );
+    }
+
+    handleDrop(target: TreeElement | undefined, dataTransfer: vscode.DataTransfer, _token: vscode.CancellationToken): void {
+        if (!currentThread) {
+            return;
+        }
+
+        const transferItem = dataTransfer.get('application/vnd.code.tree.ariadnaview');
+        if (!transferItem) {
+            return;
+        }
+        const draggedNodes: Node[] = transferItem.value;
+        if (draggedNodes.length === 0) {
+            return;
+        }
+
+        const draggedNode = draggedNodes[0];
+
+        let targetChilds: Node[];
+        let targetParentId: number | null;
+
+        if (!target || isThread(target)) {
+            targetChilds = currentThread.childs;
+            targetParentId = null;
+        } else {
+            if (isDescendantOf(target, draggedNode)) {
+                return;
+            }
+            targetChilds = target.childs;
+            targetParentId = target.id;
+        }
+
+        const sourceContainer = findParentContainer(currentThread, draggedNode.id);
+        if (!sourceContainer) {
+            return;
+        }
+        sourceContainer.childs.splice(sourceContainer.index, 1);
+
+        draggedNode.parentId = targetParentId;
+
+        targetChilds.push(draggedNode);
+
+        this._onDidChangeTreeData.fire();
     }
 }
 
@@ -193,6 +263,34 @@ function findParentContainer(thread: AriadnaThread, nodeId: number): { childs: N
     return search(thread.childs);
 }
 
+function findNodeById(thread: AriadnaThread, nodeId: number): Node | null {
+    function search(nodes: Node[]): Node | null {
+        for (const node of nodes) {
+            if (node.id === nodeId) {
+                return node;
+            }
+            const found = search(node.childs);
+            if (found) {
+                return found;
+            }
+        }
+        return null;
+    }
+    return search(thread.childs);
+}
+
+function isDescendantOf(potentialDescendant: Node, ancestor: Node): boolean {
+    if (potentialDescendant.id === ancestor.id) {
+        return true;
+    }
+    for (const child of ancestor.childs) {
+        if (isDescendantOf(potentialDescendant, child)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function createEmptyNode(thread: AriadnaThread, parentId: number | null): Node {
     return {
         id: nextNodeId(thread),
@@ -251,7 +349,11 @@ async function loadThread(): Promise<void> {
 
 export function activate(context: vscode.ExtensionContext) {
     treeDataProvider = new AriadnaTreeDataProvider();
-    vscode.window.registerTreeDataProvider('ariadnaView', treeDataProvider);
+    const treeView = vscode.window.createTreeView('ariadnaView', {
+        treeDataProvider: treeDataProvider,
+        dragAndDropController: treeDataProvider,
+    });
+    context.subscriptions.push(treeView);
 
     detailProvider = new NodeDetailTreeProvider();
     vscode.window.registerTreeDataProvider('ariadnaDetail', detailProvider);
@@ -407,4 +509,12 @@ export function deactivate() {}
 
 export function _getCurrentThread(): AriadnaThread | null {
     return currentThread;
+}
+
+export function _findNodeById(thread: AriadnaThread, nodeId: number): Node | null {
+    return findNodeById(thread, nodeId);
+}
+
+export function _isDescendantOf(potentialDescendant: Node, ancestor: Node): boolean {
+    return isDescendantOf(potentialDescendant, ancestor);
 }

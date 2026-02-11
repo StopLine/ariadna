@@ -13,6 +13,7 @@ import {
     normalizeNode,
     normalizeThread,
 } from '../model';
+import { _findNodeById, _isDescendantOf } from '../extension';
 
 suite('Model Validation', () => {
 
@@ -254,6 +255,107 @@ suite('Model Validation', () => {
                 childs: [{ id: 0 }],
             });
             assert.doesNotThrow(() => validateThread(result));
+        });
+    });
+
+    // --- Extension helpers ---
+
+    suite('findNodeById', () => {
+        function makeNode(id: number, childs: Node[] = []): Node {
+            return {
+                id,
+                parentId: null,
+                srcLink: null,
+                caption: `Node ${id}`,
+                comments: [],
+                visualMarks: [],
+                childs,
+            };
+        }
+
+        function makeThread(childs: Node[]): AriadnaThread {
+            return {
+                title: 'Test',
+                rootPath: '/',
+                description: null,
+                childs,
+                vcsRev: null,
+                currentNodeId: null,
+            };
+        }
+
+        test('finds node at root level', () => {
+            const thread = makeThread([makeNode(1), makeNode(2)]);
+            const result = _findNodeById(thread, 2);
+            assert.strictEqual(result?.id, 2);
+        });
+
+        test('finds node at deep level', () => {
+            const thread = makeThread([
+                makeNode(1, [
+                    makeNode(2, [
+                        makeNode(3),
+                    ]),
+                ]),
+            ]);
+            const result = _findNodeById(thread, 3);
+            assert.strictEqual(result?.id, 3);
+        });
+
+        test('returns null for missing id', () => {
+            const thread = makeThread([makeNode(1)]);
+            const result = _findNodeById(thread, 99);
+            assert.strictEqual(result, null);
+        });
+
+        test('returns null for empty thread', () => {
+            const thread = makeThread([]);
+            const result = _findNodeById(thread, 1);
+            assert.strictEqual(result, null);
+        });
+    });
+
+    suite('isDescendantOf', () => {
+        function makeNode(id: number, childs: Node[] = []): Node {
+            return {
+                id,
+                parentId: null,
+                srcLink: null,
+                caption: `Node ${id}`,
+                comments: [],
+                visualMarks: [],
+                childs,
+            };
+        }
+
+        test('returns true for self', () => {
+            const node = makeNode(1);
+            assert.strictEqual(_isDescendantOf(node, node), true);
+        });
+
+        test('returns true for direct child', () => {
+            const child = makeNode(2);
+            const parent = makeNode(1, [child]);
+            assert.strictEqual(_isDescendantOf(child, parent), true);
+        });
+
+        test('returns true for deep descendant', () => {
+            const grandchild = makeNode(3);
+            const child = makeNode(2, [grandchild]);
+            const parent = makeNode(1, [child]);
+            assert.strictEqual(_isDescendantOf(grandchild, parent), true);
+        });
+
+        test('returns false for unrelated nodes', () => {
+            const node1 = makeNode(1);
+            const node2 = makeNode(2);
+            assert.strictEqual(_isDescendantOf(node1, node2), false);
+        });
+
+        test('returns false for parent of node', () => {
+            const child = makeNode(2);
+            const parent = makeNode(1, [child]);
+            assert.strictEqual(_isDescendantOf(parent, child), false);
         });
     });
 });

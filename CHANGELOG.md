@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-02-12 00:07
+
+### Added
+- Drag-and-drop перемещение узлов в дереве `ariadnaView` через стандартный VS Code TreeDragAndDropController API
+- Хелперы в `extension.ts`:
+  - `findNodeById()` — рекурсивный поиск узла по ID в дереве
+  - `isDescendantOf()` — проверка, является ли узел потомком другого (предотвращение циклов)
+- Методы DnD контроллера в `AriadnaTreeDataProvider`:
+  - `handleDrag()` — разрешает перетаскивание только Node элементов (не Thread)
+  - `handleDrop()` — обрабатывает drop с автоматической проверкой на циклические ссылки, обновлением `parentId` и перемещением узла
+  - `getParent()` — возвращает родительский элемент для узла (нужен для `createTreeView`)
+- Тесты для `findNodeById` и `isDescendantOf` в `src/test/model.test.ts` (8 тестов)
+- Экспортированные функции `_findNodeById` и `_isDescendantOf` для тестирования
+
+### Changed
+- `AriadnaTreeDataProvider` теперь реализует `vscode.TreeDragAndDropController<TreeElement>`
+- Регистрация дерева: `registerTreeDataProvider` → `createTreeView` с параметром `dragAndDropController`
+- `.eslintrc.json`: добавлено правило `argsIgnorePattern: "^_"` для игнорирования неиспользуемых параметров с префиксом подчеркивания
+
+### Behavior
+- Перетаскивание узла на другой узел → узел становится дочерним элементом целевого узла (добавляется в конец `childs`)
+- Перетаскивание узла на пустое место или Thread → узел перемещается на корневой уровень
+- Попытка перетащить узел на самого себя или собственного потомка игнорируется (защита от циклов)
+- MIME тип для DnD: `application/vnd.code.tree.ariadnaview`
+
 ## 2026-02-11 23:35
 
 ### Added
