@@ -1,8 +1,9 @@
 # Changelog
 
-## [Unreleased] — 2026-02-11
+## 2026-02-11 17:01
 
 ### Added
+- `CLAUDE.md` — инструкции проекта для Claude Code (архитектура, команды, модель данных)
 - Display loaded thread as a tree in the sidebar (AriadnaTreeDataProvider).
   - Thread title shown as the root element (expanded).
   - Nodes show caption and source location (path:line) as description.
@@ -12,6 +13,9 @@
 - Нормализация JSON при загрузке треда: конвертация snake_case → camelCase и заполнение дефолтов для необязательных полей (соответствие Python/Pydantic модели)
 - Добавлены функции `normalizeSrcLink`, `normalizeNode`, `normalizeThread` в `model.ts`
 - 10 новых тестов на нормализацию
+
+### Changed
+- Объединены дублирующиеся файлы changelog (`changelog.md` → `CHANGELOG.md`)
 
 ## 2f8b020 — 2026-02-11 ~15:40
 
