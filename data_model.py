@@ -54,7 +54,7 @@ def build_sample1() -> AriadnaThread:
         description="""
         Исследуем простое кеширование при maxsize=None
         """.strip(),
-        root_path='/usr/lib/python3.12'
+        root_path='/usr/lib/python3.14'
     )
     node_cnt = 0
     thread.root = Node(
@@ -84,7 +84,7 @@ def build_sample1() -> AriadnaThread:
 
     child2 = Node(
         id = node_cnt,
-        caption="Внимание на разницу между maxsize=0 и maxsize=None!",
+        caption="Непосредственно работа с кэшем",
         src_link = SrcLink(
             path='functools.py',
             line_num=551,

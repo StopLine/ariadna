@@ -22,14 +22,6 @@
   - Nodes show caption and source location (path:line) as description.
   - Tree updates automatically when a thread is loaded via `ariadna.loadThread`.
 
-### Fixed
-- Нормализация JSON при загрузке треда: конвертация snake_case → camelCase и заполнение дефолтов для необязательных полей (соответствие Python/Pydantic модели)
-- Добавлены функции `normalizeSrcLink`, `normalizeNode`, `normalizeThread` в `model.ts`
-- 10 новых тестов на нормализацию
-
-### Changed
-- Объединены дублирующиеся файлы changelog (`changelog.md` → `CHANGELOG.md`)
-
 ## 2f8b020 — 2026-02-11 ~15:40
 
 ### Added

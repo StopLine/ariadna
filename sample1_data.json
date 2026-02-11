@@ -1,6 +1,6 @@
 {
   "title": "Разбор декоратора @lru_cache, бесконечный кеш",
-  "root_path": "/usr/lib/python3.12",
+  "root_path": "/usr/lib/python3.14",
   "description": "Исследуем простое кеширование при maxsize=None",
   "root": {
     "id": 0,
@@ -40,7 +40,7 @@
           "line_num": 551,
           "line_content": "# Simple caching without ordering or size limit"
         },
-        "caption": "Внимание на разницу между maxsize=0 и maxsize=None!",
+        "caption": "Непосредственно работа с кэшем",
         "comments": [
           "Нас интересует этот случай, простое кеширование",
           "Видно, что используется простой словарь: ключ -- некий хеш, значение -- \n            количество вхождений (хиты).\n            Их можно вытащить через метод <func>.cache_info()"
