@@ -55,6 +55,10 @@
         "command": "ariadna.saveThread",
         "title": "Save Thread",
         "icon": "$(save)"
+      },
+      {
+        "command": "ariadna.editComment",
+        "title": "Edit Comment"
       }
     ],
     "menus": {

@@ -67,7 +67,7 @@ class AriadnaTreeDataProvider implements vscode.TreeDataProvider<TreeElement> {
     }
 }
 
-type DetailItem = { label: string; value?: string; children?: DetailItem[] };
+type DetailItem = { label: string; value?: string; children?: DetailItem[]; commentIndex?: number };
 
 class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
     private items: DetailItem[] = [];
@@ -100,7 +100,7 @@ class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
         if (node.comments.length > 0) {
             items.push({
                 label: 'comments',
-                children: node.comments.map((c, i) => ({ label: `[${i}]`, value: c })),
+                children: node.comments.map((c, i) => ({ label: c, commentIndex: i })),
             });
         } else {
             items.push({ label: 'comments', value: '(empty)' });
@@ -129,6 +129,14 @@ class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
         );
         if (element.value !== undefined) {
             item.description = element.value;
+        }
+        if (element.commentIndex !== undefined) {
+            item.tooltip = element.label;
+            item.command = {
+                command: 'ariadna.editComment',
+                title: 'Edit Comment',
+                arguments: [element.commentIndex],
+            };
         }
         if (element.label === 'srcLink' && hasChildren) {
             item.contextValue = 'srcLinkField';
@@ -256,6 +264,21 @@ export function activate(context: vscode.ExtensionContext) {
             node.srcLink = { path: srcPath, lineNum, lineContent };
             detailProvider.showNode(node);
             treeDataProvider.refresh();
+        }),
+        vscode.commands.registerCommand('ariadna.editComment', async (index: number) => {
+            const node = detailProvider.currentNode;
+            if (!node || index < 0 || index >= node.comments.length) {
+                return;
+            }
+            const newText = await vscode.window.showInputBox({
+                value: node.comments[index],
+                prompt: 'Edit comment',
+                validateInput: (v) => v.length > 255 ? 'Max 255 characters' : undefined,
+            });
+            if (newText !== undefined) {
+                node.comments[index] = newText;
+                detailProvider.showNode(node);
+            }
         }),
     );
 }
