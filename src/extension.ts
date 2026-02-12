@@ -6,7 +6,7 @@ const DOUBLE_CLICK_THRESHOLD = 300;
 
 let currentThread: AriadnaThread | null = null;
 let lastLoadedUri: vscode.Uri | null = null;
-let lastDetailSelection: { item: DetailItem | null; timestamp: number } = { item: null, timestamp: 0 };
+let lastDetailClick: { label: string; commentIndex?: number; timestamp: number } | null = null;
 
 type TreeElement = AriadnaThread | Node;
 
@@ -207,9 +207,18 @@ class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
         }
         if (element.commentIndex !== undefined) {
             item.tooltip = element.label;
+            item.command = {
+                command: 'ariadna.detailItemClick',
+                title: 'Click',
+                arguments: [element.label, element.commentIndex],
+            };
         }
         if (element.label === 'caption') {
-            // Command removed - will be triggered by double-click handler
+            item.command = {
+                command: 'ariadna.detailItemClick',
+                title: 'Click',
+                arguments: [element.label, undefined],
+            };
         }
         if (element.label === 'srcLink') {
             item.contextValue = 'srcLinkField';
@@ -368,36 +377,6 @@ export function activate(context: vscode.ExtensionContext) {
         treeDataProvider: detailProvider,
     });
 
-    detailTreeView.onDidChangeSelection((event) => {
-        if (event.selection.length !== 1) {
-            return;
-        }
-
-        const selectedItem = event.selection[0];
-        const now = Date.now();
-
-        // Compare items by content, not by reference
-        const isSameItem = lastDetailSelection.item !== null &&
-            selectedItem.label === lastDetailSelection.item.label &&
-            selectedItem.commentIndex === lastDetailSelection.item.commentIndex;
-
-        if (isSameItem) {
-            if (now - lastDetailSelection.timestamp < DOUBLE_CLICK_THRESHOLD) {
-                // Double-click detected
-                if (selectedItem.commentIndex !== undefined) {
-                    vscode.commands.executeCommand('ariadna.editComment', selectedItem.commentIndex);
-                } else if (selectedItem.label === 'caption') {
-                    vscode.commands.executeCommand('ariadna.editCaption');
-                }
-                lastDetailSelection.item = null;
-                return;
-            }
-        }
-
-        // First click or different item
-        lastDetailSelection = { item: selectedItem, timestamp: now };
-    });
-
     context.subscriptions.push(detailTreeView);
 
     context.subscriptions.push(
@@ -458,6 +437,25 @@ export function activate(context: vscode.ExtensionContext) {
             node.srcLink = { path: srcPath, lineNum, lineContent };
             detailProvider.showNode(node);
             treeDataProvider.refresh();
+        }),
+        vscode.commands.registerCommand('ariadna.detailItemClick', (label: string, commentIndex?: number) => {
+            const now = Date.now();
+            const isSameItem = lastDetailClick !== null &&
+                label === lastDetailClick.label &&
+                commentIndex === lastDetailClick.commentIndex;
+
+            if (isSameItem && now - lastDetailClick!.timestamp < DOUBLE_CLICK_THRESHOLD) {
+                // Double-click detected
+                if (commentIndex !== undefined) {
+                    vscode.commands.executeCommand('ariadna.editComment', commentIndex);
+                } else if (label === 'caption') {
+                    vscode.commands.executeCommand('ariadna.editCaption');
+                }
+                lastDetailClick = null;
+                return;
+            }
+
+            lastDetailClick = { label, commentIndex, timestamp: now };
         }),
         vscode.commands.registerCommand('ariadna.editComment', async (index: number) => {
             const node = detailProvider.currentNode;
