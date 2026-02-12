@@ -376,7 +376,12 @@ export function activate(context: vscode.ExtensionContext) {
         const selectedItem = event.selection[0];
         const now = Date.now();
 
-        if (selectedItem === lastDetailSelection.item) {
+        // Compare items by content, not by reference
+        const isSameItem = lastDetailSelection.item !== null &&
+            selectedItem.label === lastDetailSelection.item.label &&
+            selectedItem.commentIndex === lastDetailSelection.item.commentIndex;
+
+        if (isSameItem) {
             if (now - lastDetailSelection.timestamp < DOUBLE_CLICK_THRESHOLD) {
                 // Double-click detected
                 if (selectedItem.commentIndex !== undefined) {
