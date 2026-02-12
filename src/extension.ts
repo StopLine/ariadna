@@ -303,6 +303,19 @@ function createEmptyNode(thread: AriadnaThread, parentId: number | null): Node {
     };
 }
 
+function insertNodeRelative(node: Node, offset: number): void {
+    if (!currentThread) {
+        return;
+    }
+    const container = findParentContainer(currentThread, node.id);
+    if (!container) {
+        return;
+    }
+    const newNode = createEmptyNode(currentThread, node.parentId);
+    container.childs.splice(container.index + offset, 0, newNode);
+    treeDataProvider.refresh();
+}
+
 async function loadThread(): Promise<void> {
     const uris = await vscode.window.showOpenDialog({
         canSelectMany: false,
@@ -458,28 +471,10 @@ export function activate(context: vscode.ExtensionContext) {
             treeDataProvider.refresh();
         }),
         vscode.commands.registerCommand('ariadna.insertNodeBefore', (node: Node) => {
-            if (!currentThread) {
-                return;
-            }
-            const container = findParentContainer(currentThread, node.id);
-            if (!container) {
-                return;
-            }
-            const newNode = createEmptyNode(currentThread, node.parentId);
-            container.childs.splice(container.index, 0, newNode);
-            treeDataProvider.refresh();
+            insertNodeRelative(node, 0);
         }),
         vscode.commands.registerCommand('ariadna.insertNodeAfter', (node: Node) => {
-            if (!currentThread) {
-                return;
-            }
-            const container = findParentContainer(currentThread, node.id);
-            if (!container) {
-                return;
-            }
-            const newNode = createEmptyNode(currentThread, node.parentId);
-            container.childs.splice(container.index + 1, 0, newNode);
-            treeDataProvider.refresh();
+            insertNodeRelative(node, 1);
         }),
         vscode.commands.registerCommand('ariadna.deleteNode', async (node: Node) => {
             if (!currentThread) {
