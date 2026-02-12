@@ -223,6 +223,12 @@ class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
         if (element.label === 'srcLink') {
             item.contextValue = 'srcLinkField';
         }
+        if (element.label === 'comments' && element.commentIndex === undefined) {
+            item.contextValue = 'commentsGroup';
+        }
+        if (element.commentIndex !== undefined) {
+            item.contextValue = 'commentItem';
+        }
         return item;
     }
 
@@ -502,6 +508,71 @@ export function activate(context: vscode.ExtensionContext) {
         }),
         vscode.commands.registerCommand('ariadna.insertNodeAfter', (node: Node) => {
             insertNodeRelative(node, 1);
+        }),
+        vscode.commands.registerCommand('ariadna.addComment', async () => {
+            const node = detailProvider.currentNode;
+            if (!node) {
+                return;
+            }
+            const text = await vscode.window.showInputBox({
+                prompt: 'Add comment',
+                validateInput: (v) => {
+                    if (!v || v.trim().length === 0) { return 'Comment cannot be empty'; }
+                    if (v.length > 255) { return 'Max 255 characters'; }
+                    return undefined;
+                },
+            });
+            if (text !== undefined) {
+                node.comments.push(text);
+                detailProvider.showNode(node);
+            }
+        }),
+        vscode.commands.registerCommand('ariadna.addCommentAfter', async (item: DetailItem) => {
+            const node = detailProvider.currentNode;
+            const index = item?.commentIndex;
+            if (!node || index === undefined) {
+                return;
+            }
+            const text = await vscode.window.showInputBox({
+                prompt: 'Add comment after',
+                validateInput: (v) => {
+                    if (!v || v.trim().length === 0) { return 'Comment cannot be empty'; }
+                    if (v.length > 255) { return 'Max 255 characters'; }
+                    return undefined;
+                },
+            });
+            if (text !== undefined) {
+                node.comments.splice(index + 1, 0, text);
+                detailProvider.showNode(node);
+            }
+        }),
+        vscode.commands.registerCommand('ariadna.addCommentBefore', async (item: DetailItem) => {
+            const node = detailProvider.currentNode;
+            const index = item?.commentIndex;
+            if (!node || index === undefined) {
+                return;
+            }
+            const text = await vscode.window.showInputBox({
+                prompt: 'Add comment before',
+                validateInput: (v) => {
+                    if (!v || v.trim().length === 0) { return 'Comment cannot be empty'; }
+                    if (v.length > 255) { return 'Max 255 characters'; }
+                    return undefined;
+                },
+            });
+            if (text !== undefined) {
+                node.comments.splice(index, 0, text);
+                detailProvider.showNode(node);
+            }
+        }),
+        vscode.commands.registerCommand('ariadna.deleteComment', (item: DetailItem) => {
+            const node = detailProvider.currentNode;
+            const index = item?.commentIndex;
+            if (!node || index === undefined) {
+                return;
+            }
+            node.comments.splice(index, 1);
+            detailProvider.showNode(node);
         }),
         vscode.commands.registerCommand('ariadna.deleteNode', async (node: Node) => {
             if (!currentThread) {

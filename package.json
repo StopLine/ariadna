@@ -79,6 +79,22 @@
       {
         "command": "ariadna.deleteNode",
         "title": "Delete"
+      },
+      {
+        "command": "ariadna.addComment",
+        "title": "Add"
+      },
+      {
+        "command": "ariadna.addCommentBefore",
+        "title": "Add Before"
+      },
+      {
+        "command": "ariadna.addCommentAfter",
+        "title": "Add After"
+      },
+      {
+        "command": "ariadna.deleteComment",
+        "title": "Delete"
       }
     ],
     "menus": {
@@ -123,6 +139,26 @@
         {
           "command": "ariadna.deleteNode",
           "when": "view == ariadnaView && viewItem == nodeItem",
+          "group": "2_delete"
+        },
+        {
+          "command": "ariadna.addComment",
+          "when": "view == ariadnaDetail && viewItem == commentsGroup",
+          "group": "1_add"
+        },
+        {
+          "command": "ariadna.addCommentBefore",
+          "when": "view == ariadnaDetail && viewItem == commentItem",
+          "group": "1_add"
+        },
+        {
+          "command": "ariadna.addCommentAfter",
+          "when": "view == ariadnaDetail && viewItem == commentItem",
+          "group": "1_add"
+        },
+        {
+          "command": "ariadna.deleteComment",
+          "when": "view == ariadnaDetail && viewItem == commentItem",
           "group": "2_delete"
         }
       ]
