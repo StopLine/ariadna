@@ -3,6 +3,7 @@
 .claude/**
 scripts/**
 src/**
+CLAUDE.md
 .gitignore
 .yarnrc
 vsc-extension-quickstart.md
