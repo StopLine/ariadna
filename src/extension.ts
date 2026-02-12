@@ -2,8 +2,11 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { type AriadnaThread, type Node, ValidationError, validateThread, normalizeThread, serializeThread } from './model';
 
+const DOUBLE_CLICK_THRESHOLD = 300;
+
 let currentThread: AriadnaThread | null = null;
 let lastLoadedUri: vscode.Uri | null = null;
+let lastDetailSelection: { item: DetailItem | null; timestamp: number } = { item: null, timestamp: 0 };
 
 type TreeElement = AriadnaThread | Node;
 
@@ -204,17 +207,9 @@ class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
         }
         if (element.commentIndex !== undefined) {
             item.tooltip = element.label;
-            item.command = {
-                command: 'ariadna.editComment',
-                title: 'Edit Comment',
-                arguments: [element.commentIndex],
-            };
         }
         if (element.label === 'caption') {
-            item.command = {
-                command: 'ariadna.editCaption',
-                title: 'Edit Caption',
-            };
+            // Command removed - will be triggered by double-click handler
         }
         if (element.label === 'srcLink') {
             item.contextValue = 'srcLinkField';
@@ -369,7 +364,36 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(treeView);
 
     detailProvider = new NodeDetailTreeProvider();
-    vscode.window.registerTreeDataProvider('ariadnaDetail', detailProvider);
+    const detailTreeView = vscode.window.createTreeView('ariadnaDetail', {
+        treeDataProvider: detailProvider,
+    });
+
+    detailTreeView.onDidChangeSelection((event) => {
+        if (event.selection.length !== 1) {
+            return;
+        }
+
+        const selectedItem = event.selection[0];
+        const now = Date.now();
+
+        if (selectedItem === lastDetailSelection.item) {
+            if (now - lastDetailSelection.timestamp < DOUBLE_CLICK_THRESHOLD) {
+                // Double-click detected
+                if (selectedItem.commentIndex !== undefined) {
+                    vscode.commands.executeCommand('ariadna.editComment', selectedItem.commentIndex);
+                } else if (selectedItem.label === 'caption') {
+                    vscode.commands.executeCommand('ariadna.editCaption');
+                }
+                lastDetailSelection.item = null;
+                return;
+            }
+        }
+
+        // First click or different item
+        lastDetailSelection = { item: selectedItem, timestamp: now };
+    });
+
+    context.subscriptions.push(detailTreeView);
 
     context.subscriptions.push(
         vscode.commands.registerCommand('ariadna.helloWorld', () => {
