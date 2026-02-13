@@ -7,6 +7,7 @@ const DOUBLE_CLICK_THRESHOLD = 300;
 let currentThread: AriadnaThread | null = null;
 let lastLoadedUri: vscode.Uri | null = null;
 let lastDetailClick: { label: string; commentIndex?: number; timestamp: number } | null = null;
+let lastThreadClickTime = 0;
 
 type TreeElement = AriadnaThread | Node;
 
@@ -427,7 +428,23 @@ export function activate(context: vscode.ExtensionContext) {
             lastLoadedUri = uri;
             vscode.window.showInformationMessage(`Thread saved to ${path.basename(uri.fsPath)}`);
         }),
-        vscode.commands.registerCommand('ariadna.selectThread', (thread: AriadnaThread) => {
+        vscode.commands.registerCommand('ariadna.selectThread', async (thread: AriadnaThread) => {
+            const now = Date.now();
+            if (now - lastThreadClickTime < DOUBLE_CLICK_THRESHOLD) {
+                lastThreadClickTime = 0;
+                const newTitle = await vscode.window.showInputBox({
+                    value: thread.title,
+                    prompt: 'Edit thread title',
+                    validateInput: (v) => !v || v.trim().length === 0 ? 'Title cannot be empty' : undefined,
+                });
+                if (newTitle !== undefined && newTitle.trim().length > 0) {
+                    thread.title = newTitle;
+                    treeDataProvider.refresh();
+                    detailProvider.showThread(thread);
+                }
+                return;
+            }
+            lastThreadClickTime = now;
             detailProvider.showThread(thread);
         }),
         vscode.commands.registerCommand('ariadna.selectNode', async (node: Node) => {
