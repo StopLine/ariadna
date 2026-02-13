@@ -154,8 +154,6 @@ class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
     showNode(node: Node): void {
         this.currentNode = node;
         const items: DetailItem[] = [
-            { label: 'id', value: String(node.id) },
-            { label: 'parentId', value: node.parentId === null ? 'null' : String(node.parentId) },
             { label: 'caption', value: node.caption },
         ];
 
