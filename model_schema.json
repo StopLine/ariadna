@@ -138,19 +138,6 @@
       "default": null,
       "description": "Ревизия системы контроля версий, для которой актулен данный тред",
       "title": "Vcs Rev"
-    },
-    "current_node_id": {
-      "anyOf": [
-        {
-          "type": "integer"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "description": "Идентификатор текущего узла. Если задан, перехоим сюда при открытии документа",
-      "title": "Current Node Id"
     }
   },
   "required": [

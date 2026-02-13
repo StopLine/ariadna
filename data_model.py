@@ -36,7 +36,6 @@ class AriadnaThread(BaseModel):
     childs: list[Node] = Field([], description="Список дочерних узлов дерева")
     vcs_rev: str | None = Field(None, description="Ревизия системы контроля версий, "
                                 "для которой актулен данный тред")
-    current_node_id: int | None = Field(None, description="Идентификатор текущего узла. Если задан, перехоим сюда при открытии документа")
 
 
 def build_sample1() -> AriadnaThread:
