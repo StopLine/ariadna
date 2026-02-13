@@ -10,6 +10,8 @@ let lastDetailClick: { label: string; commentIndex?: number; timestamp: number }
 let lastThreadClickTime = 0;
 let isDirty = false;
 let mainTreeView: vscode.TreeView<TreeElement>;
+let extensionContext: vscode.ExtensionContext;
+let lastSelectedNodeId: number | null = null;
 
 type TreeElement = AriadnaThread | Node;
 
@@ -321,6 +323,12 @@ function clearDirty(): void {
     mainTreeView.description = '';
 }
 
+function saveState(): void {
+    const state = extensionContext.workspaceState;
+    state.update('ariadna.lastThreadUri', lastLoadedUri?.toString() ?? undefined);
+    state.update('ariadna.lastSelectedNodeId', lastSelectedNodeId ?? undefined);
+}
+
 async function confirmSaveIfDirty(): Promise<boolean> {
     if (!isDirty) {
         return true;
@@ -424,10 +432,13 @@ async function loadThread(): Promise<void> {
     currentThread = data;
     treeDataProvider.setThread(data);
     clearDirty();
+    lastSelectedNodeId = null;
+    saveState();
     vscode.window.showInformationMessage(`Thread "${data.title}" loaded`);
 }
 
 export function activate(context: vscode.ExtensionContext) {
+    extensionContext = context;
     treeDataProvider = new AriadnaTreeDataProvider();
     const treeView = vscode.window.createTreeView('ariadnaView', {
         treeDataProvider: treeDataProvider,
@@ -498,6 +509,8 @@ export function activate(context: vscode.ExtensionContext) {
             lastLoadedUri = null;
             treeDataProvider.setThread(currentThread);
             clearDirty();
+            lastSelectedNodeId = null;
+            saveState();
         }),
         vscode.commands.registerCommand('ariadna.selectThread', async (thread: AriadnaThread) => {
             const now = Date.now();
@@ -520,6 +533,8 @@ export function activate(context: vscode.ExtensionContext) {
             detailProvider.showThread(thread);
         }),
         vscode.commands.registerCommand('ariadna.selectNode', async (node: Node) => {
+            lastSelectedNodeId = node.id;
+            saveState();
             detailProvider.showNode(node);
             if (node.srcLink && currentThread?.rootPath) {
                 const isAbsolute = path.isAbsolute(node.srcLink.path);
@@ -721,6 +736,40 @@ export function activate(context: vscode.ExtensionContext) {
             treeDataProvider.refresh();
         }),
     );
+
+    // Restore last session state
+    (async () => {
+        const state = context.workspaceState;
+        const uriStr = state.get<string>('ariadna.lastThreadUri');
+        if (!uriStr) {
+            return;
+        }
+        const uri = vscode.Uri.parse(uriStr);
+        try {
+            const fileContent = await vscode.workspace.fs.readFile(uri);
+            const text = Buffer.from(fileContent).toString('utf-8');
+            const data = normalizeThread(JSON.parse(text));
+            validateThread(data);
+
+            lastLoadedUri = uri;
+            currentThread = data;
+            treeDataProvider.setThread(data);
+            clearDirty();
+
+            // Restore selected node
+            const nodeId = state.get<number>('ariadna.lastSelectedNodeId');
+            if (nodeId !== undefined && nodeId !== null) {
+                const node = findNodeById(data, nodeId);
+                if (node) {
+                    lastSelectedNodeId = nodeId;
+                    mainTreeView.reveal(node, { select: true, focus: false });
+                    detailProvider.showNode(node);
+                }
+            }
+        } catch {
+            // File missing or invalid — silently ignore, start with empty state
+        }
+    })();
 }
 
 export function deactivate() {}
