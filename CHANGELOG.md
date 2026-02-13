@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-02-13 15:25
+
+### Removed
+- Интерфейс `VisualMark` и константа `vmarkNote` из `src/model.ts`
+- Поле `visualMarks` из интерфейса `Node`
+- Маппинг `visual_marks` из `normalizeNode()` и `serializeNode()`
+- Функция `validateVisualMark()` и её вызов из `validateNode()`
+- Блок отображения `visualMarks` в панели Node Details (`extension.ts`)
+- Тесты и импорты, связанные с `VisualMark`, из `src/test/model.test.ts`
+
+Синхронизация TypeScript-кода с Python-моделью после удаления `visual_marks` в коммите `89ecf27`.
+
 ## 2026-02-12 00:07
 
 ### Added

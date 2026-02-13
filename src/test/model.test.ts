@@ -2,13 +2,10 @@ import * as assert from 'assert';
 import {
     type AriadnaThread,
     type Node,
-    type VisualMark,
     ValidationError,
-    validateVisualMark,
     validateComment,
     validateNode,
     validateThread,
-    vmarkNote,
     normalizeSrcLink,
     normalizeNode,
     normalizeThread,
@@ -16,34 +13,6 @@ import {
 import { _findNodeById, _isDescendantOf } from '../extension';
 
 suite('Model Validation', () => {
-
-    // --- VisualMark ---
-
-    suite('validateVisualMark', () => {
-        test('accepts valid mark', () => {
-            assert.doesNotThrow(() => validateVisualMark(vmarkNote));
-        });
-
-        test('rejects empty char', () => {
-            const mark: VisualMark = { char: '', name: 'ok' };
-            assert.throws(() => validateVisualMark(mark), ValidationError);
-        });
-
-        test('rejects char longer than 4', () => {
-            const mark: VisualMark = { char: 'abcde', name: 'ok' };
-            assert.throws(() => validateVisualMark(mark), ValidationError);
-        });
-
-        test('rejects empty name', () => {
-            const mark: VisualMark = { char: '!', name: '' };
-            assert.throws(() => validateVisualMark(mark), ValidationError);
-        });
-
-        test('rejects name longer than 20', () => {
-            const mark: VisualMark = { char: '!', name: 'a'.repeat(21) };
-            assert.throws(() => validateVisualMark(mark), ValidationError);
-        });
-    });
 
     // --- Comment ---
 
@@ -71,7 +40,6 @@ suite('Model Validation', () => {
                 srcLink: null,
                 caption: '',
                 comments: [],
-                visualMarks: [],
                 childs: [],
                 ...overrides,
             };
@@ -96,13 +64,6 @@ suite('Model Validation', () => {
         test('validates comments inside node', () => {
             assert.throws(
                 () => validateNode(makeNode({ comments: ['x'.repeat(256)] })),
-                ValidationError,
-            );
-        });
-
-        test('validates visual marks inside node', () => {
-            assert.throws(
-                () => validateNode(makeNode({ visualMarks: [{ char: '', name: 'bad' }] })),
                 ValidationError,
             );
         });
@@ -149,7 +110,7 @@ suite('Model Validation', () => {
         test('validates root node', () => {
             const badRoot: Node = {
                 id: 0.5, parentId: null, srcLink: null,
-                caption: '', comments: [], visualMarks: [], childs: [],
+                caption: '', comments: [], childs: [],
             };
             assert.throws(
                 () => validateThread(makeThread({ childs: [badRoot] })),
@@ -187,7 +148,6 @@ suite('Model Validation', () => {
             assert.strictEqual(result.srcLink, null);
             assert.strictEqual(result.caption, '');
             assert.deepStrictEqual(result.comments, []);
-            assert.deepStrictEqual(result.visualMarks, []);
             assert.deepStrictEqual(result.childs, []);
         });
 
@@ -196,11 +156,9 @@ suite('Model Validation', () => {
                 id: 1,
                 parent_id: 0,
                 src_link: { path: 'a.ts', line_num: 1, line_content: 'x' },
-                visual_marks: [{ char: '!', name: 'bang' }],
             });
             assert.strictEqual(result.parentId, 0);
             assert.strictEqual(result.srcLink!.lineNum, 1);
-            assert.strictEqual(result.visualMarks[0].char, '!');
         });
 
         test('normalizes children recursively', () => {
@@ -241,11 +199,9 @@ suite('Model Validation', () => {
                 childs: [{
                     id: 0,
                     src_link: { path: 'f.ts', line_num: 42, line_content: 'hi' },
-                    visual_marks: [{ char: '!', name: 'x' }],
                 }],
             });
             assert.strictEqual(result.childs[0].srcLink!.lineNum, 42);
-            assert.strictEqual(result.childs[0].visualMarks[0].char, '!');
             assert.deepStrictEqual(result.childs[0].comments, []);
         });
 
@@ -268,7 +224,6 @@ suite('Model Validation', () => {
                 srcLink: null,
                 caption: `Node ${id}`,
                 comments: [],
-                visualMarks: [],
                 childs,
             };
         }
@@ -323,7 +278,6 @@ suite('Model Validation', () => {
                 srcLink: null,
                 caption: `Node ${id}`,
                 comments: [],
-                visualMarks: [],
                 childs,
             };
         }

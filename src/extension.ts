@@ -181,15 +181,6 @@ class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
             items.push({ label: 'comments', value: '(empty)' });
         }
 
-        if (node.visualMarks.length > 0) {
-            items.push({
-                label: 'visualMarks',
-                children: node.visualMarks.map((m, i) => ({ label: `[${i}]`, value: `${m.char} ${m.name}` })),
-            });
-        } else {
-            items.push({ label: 'visualMarks', value: '(empty)' });
-        }
-
         this.items = items;
         this._onDidChangeTreeData.fire();
     }
@@ -308,7 +299,6 @@ function createEmptyNode(thread: AriadnaThread, parentId: number | null): Node {
         srcLink: null,
         caption: 'New node',
         comments: [],
-        visualMarks: [],
         childs: [],
     };
 }

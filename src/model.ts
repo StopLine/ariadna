@@ -9,14 +9,6 @@ export interface SrcLink {
     lineContent: string;
 }
 
-/** Визуальная метка. Юникодный символ или эмодзи */
-export interface VisualMark {
-    char: string;
-    name: string;
-}
-
-export const vmarkNote: VisualMark = { char: "⚠️", name: "attention" };
-
 /** Комментарий (макс. 255 символов) */
 export type Comment = string;
 
@@ -26,7 +18,6 @@ export interface Node {
     srcLink: SrcLink | null;
     caption: string;
     comments: Comment[];
-    visualMarks: VisualMark[];
     childs: Node[];
 }
 
@@ -63,9 +54,6 @@ export function normalizeNode(raw: RawObject): Node {
             : null,
         caption: raw.caption ?? '',
         comments: raw.comments ?? [],
-        visualMarks: (raw.visualMarks ?? raw.visual_marks ?? []).map(
-            (m: RawObject) => ({ char: m.char, name: m.name }) as VisualMark,
-        ),
         childs: (raw.childs ?? []).map((c: RawObject) => normalizeNode(c)),
     };
 }
@@ -94,7 +82,6 @@ export function serializeNode(node: Node): RawObject {
         } : null,
         caption: node.caption,
         comments: node.comments,
-        visual_marks: node.visualMarks.map(m => ({ char: m.char, name: m.name })),
         childs: node.childs.map(c => serializeNode(c)),
     };
 }
@@ -119,15 +106,6 @@ export class ValidationError extends Error {
     }
 }
 
-export function validateVisualMark(mark: VisualMark): void {
-    if (!mark.char || mark.char.length > 4) {
-        throw new ValidationError('char', 'must be 1-4 characters');
-    }
-    if (!mark.name || mark.name.length > 20) {
-        throw new ValidationError('name', 'must be 1-20 characters');
-    }
-}
-
 export function validateComment(comment: Comment): void {
     if (comment.length > 255) {
         throw new ValidationError('comment', 'must be at most 255 characters');
@@ -143,9 +121,6 @@ export function validateNode(node: Node): void {
     }
     for (const comment of node.comments) {
         validateComment(comment);
-    }
-    for (const mark of node.visualMarks) {
-        validateVisualMark(mark);
     }
     for (const child of node.childs) {
         validateNode(child);
