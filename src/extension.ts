@@ -321,6 +321,25 @@ function clearDirty(): void {
     mainTreeView.description = '';
 }
 
+async function confirmSaveIfDirty(): Promise<boolean> {
+    if (!isDirty) {
+        return true;
+    }
+    const answer = await vscode.window.showWarningMessage(
+        'Current thread has unsaved changes. Save before continuing?',
+        { modal: true },
+        'Save',
+        'Don\'t Save',
+    );
+    if (answer === undefined) {
+        return false;
+    }
+    if (answer === 'Save') {
+        await vscode.commands.executeCommand('ariadna.saveThread');
+    }
+    return true;
+}
+
 function createEmptyNode(thread: AriadnaThread, parentId: number | null): Node {
     return {
         id: nextNodeId(thread),
@@ -361,6 +380,9 @@ function insertNodeRelative(node: Node, offset: number): void {
 }
 
 async function loadThread(): Promise<void> {
+    if (!await confirmSaveIfDirty()) {
+        return;
+    }
     const uris = await vscode.window.showOpenDialog({
         canSelectMany: false,
         filters: { 'Ariadna Thread': ['json'] },
@@ -461,7 +483,10 @@ export function activate(context: vscode.ExtensionContext) {
             clearDirty();
             vscode.window.showInformationMessage(`Thread saved to ${path.basename(uri.fsPath)}`);
         }),
-        vscode.commands.registerCommand('ariadna.createNewThread', () => {
+        vscode.commands.registerCommand('ariadna.createNewThread', async () => {
+            if (!await confirmSaveIfDirty()) {
+                return;
+            }
             currentThread = {
                 title: 'New thread',
                 rootPath: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '',
