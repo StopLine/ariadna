@@ -14,4 +14,6 @@ vsc-extension-quickstart.md
 node_modules/**
 samples/**
 openspec/**
+data_model.py
+sample1_data.json
 
