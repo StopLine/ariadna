@@ -48,15 +48,6 @@
           "title": "Comments",
           "type": "array"
         },
-        "visual_marks": {
-          "default": [],
-          "description": "Список визуальных меток",
-          "items": {
-            "$ref": "#/$defs/VisualMark"
-          },
-          "title": "Visual Marks",
-          "type": "array"
-        },
         "childs": {
           "default": [],
           "description": "Список дочерних узлов дерева",
@@ -96,31 +87,6 @@
         }
       },
       "title": "SrcLink",
-      "type": "object"
-    },
-    "VisualMark": {
-      "description": "Визуальная метка. Юникодный символ или эмодзи",
-      "properties": {
-        "char": {
-          "description": "Юникодная строка, представляющая метку",
-          "maxLength": 4,
-          "minLength": 1,
-          "title": "Char",
-          "type": "string"
-        },
-        "name": {
-          "description": "Название метки",
-          "maxLength": 20,
-          "minLength": 1,
-          "title": "Name",
-          "type": "string"
-        }
-      },
-      "required": [
-        "char",
-        "name"
-      ],
-      "title": "VisualMark",
       "type": "object"
     }
   },

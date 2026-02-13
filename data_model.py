@@ -17,14 +17,6 @@ class SrcLink(BaseModel):
     line_content: str = Field('', description="Ожидаемое содержимое строки")
 
 
-class VisualMark(BaseModel):
-    """Визуальная метка. Юникодный символ или эмодзи"""
-    char: str = Field(min_length=1, max_length=4, description="Юникодная строка, представляющая метку")
-    name: str = Field(min_length=1, max_length=20, description="Название метки")
-
-
-vmark_note = VisualMark(char="⚠️", name="attention")
-
 Comment = Annotated[str, StringConstraints(max_length=255)]
 
 class Node(BaseModel):
@@ -33,7 +25,6 @@ class Node(BaseModel):
     src_link: SrcLink | None = Field(None, description="Ссылка на место в исходном коде")
     caption: str = Field('', description="Название узла")
     comments: list[Comment] = Field([], description="Список комментариев")
-    visual_marks: list[VisualMark] = Field([], description="Список визуальных меток")
     childs: list[Node] = Field([], description="Список дочерних узлов дерева")
 
 
@@ -78,7 +69,6 @@ def build_sample1() -> AriadnaThread:
             line_num=540,
             line_content="    if maxsize == 0:",
         ),
-        visual_marks=[vmark_note],
     )
     node_cnt += 1
     root.childs.append(child1)
