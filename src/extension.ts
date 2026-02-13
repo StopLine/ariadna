@@ -42,6 +42,11 @@ class AriadnaTreeDataProvider implements vscode.TreeDataProvider<TreeElement>, v
             );
             item.tooltip = element.description ?? undefined;
             item.contextValue = 'threadItem';
+            item.command = {
+                command: 'ariadna.selectThread',
+                title: 'Select Thread',
+                arguments: [element],
+            };
             return item;
         }
 
@@ -179,6 +184,18 @@ class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
             items.push({ label: 'comments', value: '(empty)' });
         }
 
+        this.items = items;
+        this._onDidChangeTreeData.fire();
+    }
+
+    showThread(thread: AriadnaThread): void {
+        this.currentNode = null;
+        const items: DetailItem[] = [
+            { label: 'title', value: thread.title },
+            { label: 'rootPath', value: thread.rootPath },
+            { label: 'description', value: thread.description ?? '(none)' },
+            { label: 'vcsRev', value: thread.vcsRev ?? '(none)' },
+        ];
         this.items = items;
         this._onDidChangeTreeData.fire();
     }
@@ -409,6 +426,9 @@ export function activate(context: vscode.ExtensionContext) {
             await vscode.workspace.fs.writeFile(uri, Buffer.from(json, 'utf-8'));
             lastLoadedUri = uri;
             vscode.window.showInformationMessage(`Thread saved to ${path.basename(uri.fsPath)}`);
+        }),
+        vscode.commands.registerCommand('ariadna.selectThread', (thread: AriadnaThread) => {
+            detailProvider.showThread(thread);
         }),
         vscode.commands.registerCommand('ariadna.selectNode', async (node: Node) => {
             detailProvider.showNode(node);

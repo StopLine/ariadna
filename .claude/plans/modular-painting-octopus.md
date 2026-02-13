@@ -1,44 +1,31 @@
-# Двойной клик на узле дерева → редактирование caption
+# Убрать currentNodeId из TypeScript-кода
 
 ## Контекст
-Сейчас клик на узле в основном дереве (`ariadnaView`) вызывает `ariadna.selectNode` — показывает детали и открывает файл. Нужно добавить: двойной клик на узле открывает диалог редактирования caption (аналогично тому, как уже работает двойной клик на caption в панели деталей).
-
-## Подход
-Используем тот же паттерн двойного клика, что уже применяется для `ariadna.detailItemClick` (строка 448): отслеживаем время между кликами и сравниваем с `DOUBLE_CLICK_THRESHOLD` (300мс).
+Из Python-модели данных убрано поле `current_node_id`. Нужно синхронизировать TypeScript-код — удалить `currentNodeId` из типа, парсинга, сериализации и тестов.
 
 ## Изменения
 
-**Файл:** `src/extension.ts`
+### 1. `src/model.ts`
 
-### 1. Добавить переменную для отслеживания кликов по узлам дерева (~строка 9, рядом с `lastDetailClick`)
-```typescript
-let lastNodeClick: { nodeId: number; timestamp: number } | null = null;
+**Строка 31** — убрать поле из интерфейса `AriadnaThread`:
+```
+currentNodeId: number | null;  // удалить
 ```
 
-### 2. Изменить команду `ariadna.selectNode` (строка 413)
-Добавить проверку двойного клика в начало обработчика. При двойном клике — вызывать `ariadna.editCaption`, при одинарном — текущее поведение (показать детали + открыть файл).
-
-```typescript
-vscode.commands.registerCommand('ariadna.selectNode', async (node: Node) => {
-    const now = Date.now();
-    const isDoubleClick = lastNodeClick !== null &&
-        node.id === lastNodeClick.nodeId &&
-        now - lastNodeClick.timestamp < DOUBLE_CLICK_THRESHOLD;
-
-    if (isDoubleClick) {
-        lastNodeClick = null;
-        detailProvider.showNode(node);
-        vscode.commands.executeCommand('ariadna.editCaption');
-        return;
-    }
-
-    lastNodeClick = { nodeId: node.id, timestamp: now };
-    detailProvider.showNode(node);
-    // ... остальная логика навигации к файлу без изменений
+**Строка 68** — убрать из `parseThread()`:
+```
+currentNodeId: raw.currentNodeId ?? raw.current_node_id ?? null,  // удалить
 ```
 
-Важно: `detailProvider.showNode(node)` вызывается и при двойном клике, чтобы `editCaption` нашёл `detailProvider.currentNode`.
+**Строка 96** — убрать из `serializeThread()`:
+```
+current_node_id: thread.currentNodeId,  // удалить
+```
+
+### 2. `src/test/model.test.ts`
+
+Убрать все упоминания `currentNodeId` / `current_node_id` из тестовых объектов и ассертов (строки 90, 181, 189, 193, 238).
 
 ## Проверка
 - `npm run compile` — компиляция проходит
-- В Extension Development Host: одинарный клик — выбор узла + навигация к файлу; двойной клик — диалог редактирования caption
+- `npm run test` — тесты проходят

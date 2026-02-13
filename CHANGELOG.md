@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-02-13 15:55
+
+### Added
+- Отображение свойств `AriadnaThread` в панели Node Details при клике на корневой элемент дерева — показываются title, rootPath, description, vcsRev
+- Команда `ariadna.selectThread` — вызывает `detailProvider.showThread()` для отображения свойств треда
+- Метод `showThread()` в `NodeDetailTreeProvider` — формирует список DetailItem из полей AriadnaThread
+- `item.command` на элементе AriadnaThread в `getTreeItem()` — теперь клик на корневой элемент вызывает `ariadna.selectThread`
+
 ## 2026-02-13 15:42
 
 ### Removed
