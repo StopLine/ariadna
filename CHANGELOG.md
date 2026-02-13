@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-02-13 15:36
+
+### Added
+- Подменю **Marks** в контекстном меню узлов дерева `ariadnaView` — быстрая установка эмодзи-меток на узлы
+- 6 команд меток: `ariadna.markCheck` (✅), `ariadna.markExclamation` (❗), `ariadna.markQuestion` (❓), `ariadna.markFire` (🔥), `ariadna.markCross` (❌), `ariadna.markHeart` (❤️)
+- Функция `prependMark()` в `extension.ts` — добавляет/убирает эмодзи в начале `caption` узла (toggle-поведение)
+- Секция `contributes.submenus` в `package.json` с подменю `ariadna.marksSubmenu`
+- Меню `ariadna.marksSubmenu` с 6 пунктами и привязка подменю к `view/item/context` в группе `3_marks`
+
 ## 2026-02-13 15:25
 
 ### Removed

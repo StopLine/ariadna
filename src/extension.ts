@@ -303,6 +303,19 @@ function createEmptyNode(thread: AriadnaThread, parentId: number | null): Node {
     };
 }
 
+function prependMark(node: Node, mark: string): void {
+    const prefix = mark + ' ';
+    if (node.caption.startsWith(prefix)) {
+        node.caption = node.caption.slice(prefix.length);
+    } else {
+        node.caption = prefix + node.caption;
+    }
+    treeDataProvider.refresh();
+    if (detailProvider.currentNode?.id === node.id) {
+        detailProvider.showNode(node);
+    }
+}
+
 function insertNodeRelative(node: Node, offset: number): void {
     if (!currentThread) {
         return;
@@ -564,6 +577,12 @@ export function activate(context: vscode.ExtensionContext) {
             node.comments.splice(index, 1);
             detailProvider.showNode(node);
         }),
+        vscode.commands.registerCommand('ariadna.markCheck', (node: Node) => prependMark(node, '✅')),
+        vscode.commands.registerCommand('ariadna.markExclamation', (node: Node) => prependMark(node, '❗')),
+        vscode.commands.registerCommand('ariadna.markQuestion', (node: Node) => prependMark(node, '❓')),
+        vscode.commands.registerCommand('ariadna.markFire', (node: Node) => prependMark(node, '🔥')),
+        vscode.commands.registerCommand('ariadna.markCross', (node: Node) => prependMark(node, '❌')),
+        vscode.commands.registerCommand('ariadna.markHeart', (node: Node) => prependMark(node, '❤️')),
         vscode.commands.registerCommand('ariadna.deleteNode', async (node: Node) => {
             if (!currentThread) {
                 return;

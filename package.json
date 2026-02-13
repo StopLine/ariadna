@@ -95,6 +95,36 @@
       {
         "command": "ariadna.deleteComment",
         "title": "Delete"
+      },
+      {
+        "command": "ariadna.markCheck",
+        "title": "✅"
+      },
+      {
+        "command": "ariadna.markExclamation",
+        "title": "❗"
+      },
+      {
+        "command": "ariadna.markQuestion",
+        "title": "❓"
+      },
+      {
+        "command": "ariadna.markFire",
+        "title": "🔥"
+      },
+      {
+        "command": "ariadna.markCross",
+        "title": "❌"
+      },
+      {
+        "command": "ariadna.markHeart",
+        "title": "❤️"
+      }
+    ],
+    "submenus": [
+      {
+        "id": "ariadna.marksSubmenu",
+        "label": "Marks"
       }
     ],
     "menus": {
@@ -142,6 +172,11 @@
           "group": "2_delete"
         },
         {
+          "submenu": "ariadna.marksSubmenu",
+          "when": "view == ariadnaView && viewItem == nodeItem",
+          "group": "3_marks"
+        },
+        {
           "command": "ariadna.addComment",
           "when": "view == ariadnaDetail && viewItem == commentsGroup",
           "group": "1_add"
@@ -160,6 +195,26 @@
           "command": "ariadna.deleteComment",
           "when": "view == ariadnaDetail && viewItem == commentItem",
           "group": "2_delete"
+        }
+      ],
+      "ariadna.marksSubmenu": [
+        {
+          "command": "ariadna.markCheck"
+        },
+        {
+          "command": "ariadna.markExclamation"
+        },
+        {
+          "command": "ariadna.markQuestion"
+        },
+        {
+          "command": "ariadna.markFire"
+        },
+        {
+          "command": "ariadna.markCross"
+        },
+        {
+          "command": "ariadna.markHeart"
         }
       ]
     }
