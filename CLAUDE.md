@@ -17,29 +17,28 @@ To debug: use the **"Run Extension"** launch configuration in VS Code, which sta
 
 ## Architecture
 
-- **Entry point**: `src/extension.ts` — exports `activate()` and `deactivate()`. Registers `AriadnaTreeDataProvider` for the sidebar view, and commands (`ariadna.helloWorld`, `ariadna.loadThread`). Maintains `currentThread` state.
-- **Data model**: `src/model.ts` — defines the core types (`AriadnaThread`, `Node`, `SrcLink`, `VisualMark`, `Comment`) and runtime validation functions. Threads are recursive tree structures where each `Node` has `childs: Node[]`.
+- **Entry point**: `src/extension.ts` — exports `activate()` and `deactivate()`. Contains two tree data providers:
+  - `AriadnaTreeDataProvider` — sidebar tree view (`ariadnaView`) showing the thread hierarchy with drag-and-drop support.
+  - `NodeDetailTreeProvider` — detail panel (`ariadnaDetail`) showing properties of the selected node or thread.
+- **Data model**: `src/model.ts` — defines core types (`AriadnaThread`, `Node`, `SrcLink`, `Comment`) plus normalization (snake_case JSON ↔ camelCase TS), serialization, and validation.
+- **Thread structure**: `AriadnaThread` has `childs: Node[]` directly (no wrapper root node). Each `Node` has `id`, `parentId`, `srcLink`, `caption`, `comments[]`, and `childs[]`.
 - **Output**: compiled JS goes to `out/` (CommonJS modules, ES2022 target).
 - **VS Code API**: targets VS Code `^1.85.0`. The `@types/vscode` package provides types — do not import `vscode` as a runtime dependency; it is provided by the host.
-- **Contribution points** in `package.json` under `contributes`: activity bar container (`ariadna`), sidebar view (`ariadnaView`), commands, and a view/title menu button for loading threads.
+- **Commands**: defined in `package.json` `contributes.commands` — includes node CRUD (`addChildNode`, `insertNodeBefore/After`, `deleteNode`), editing (`editCaption`, `editComment`), comments (`addComment`, `addCommentBefore/After`, `deleteComment`), visual marks (emoji toggles), `loadThread`/`saveThread`, and `updateSrcLink`.
 
 ## Data Model
 
-The thread JSON format (see `data/model_schema.json` and `data/sample1_data.json`):
-
-- **AriadnaThread** — root document with `title`, `rootPath`, optional `description`, `root` node tree, `vcsRev`, and `currentNodeId`.
-- **Node** — tree node with `id`, `parentId`, `srcLink` (file path + line number + expected content), `caption`, `comments[]`, `visualMarks[]`, and `childs[]`.
-- **Validation** — all types have `validate*()` functions in `model.ts` that enforce constraints (char lengths, integer IDs, etc.) and throw `ValidationError` with field names. Data is validated on load before entering extension state.
+- **AriadnaThread** — `title`, `rootPath`, optional `description`, `childs: Node[]`, `vcsRev`, `currentNodeId`.
+- **Node** — `id`, `parentId`, `srcLink` (file path + line number + expected content), `caption`, `comments[]`, `childs[]`.
+- **Normalization** — `normalize*()` functions convert snake_case JSON keys to camelCase and fill defaults. `serialize*()` does the reverse for saving.
+- **Validation** — `validate*()` functions enforce constraints (char lengths, integer IDs, etc.) and throw `ValidationError` with field names. Data is validated on load before entering extension state.
 
 ## Testing
 
-- Tests are in `src/test/model.test.ts` using Mocha.
+- Tests are in `src/test/model.test.ts` using Mocha (TDD `suite`/`test` style).
+- Test runner: `@vscode/test-cli` + `@vscode/test-electron`, configured in `.vscode-test.mjs` (runs compiled JS from `out/test/`).
 - Factory helpers (`makeNode`, `makeThread`) build valid objects for testing.
-- `_getCurrentThread()` is exported from `extension.ts` for test access.
-
-## Dual-Language Schema
-
-The data model exists in both Python (Pydantic, in `data/`) and TypeScript. The Python side generates the JSON schema and sample data. Keep these in sync when modifying the model.
+- Helper exports from `extension.ts` (`_getCurrentThread`, `_findNodeById`, `_isDescendantOf`) are available for test access.
 
 ## Rules for Claude Code
 

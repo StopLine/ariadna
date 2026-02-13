@@ -8,6 +8,8 @@ let currentThread: AriadnaThread | null = null;
 let lastLoadedUri: vscode.Uri | null = null;
 let lastDetailClick: { label: string; commentIndex?: number; timestamp: number } | null = null;
 let lastThreadClickTime = 0;
+let isDirty = false;
+let mainTreeView: vscode.TreeView<TreeElement>;
 
 type TreeElement = AriadnaThread | Node;
 
@@ -144,6 +146,7 @@ class AriadnaTreeDataProvider implements vscode.TreeDataProvider<TreeElement>, v
 
         targetChilds.push(draggedNode);
 
+        markDirty();
         this._onDidChangeTreeData.fire();
     }
 }
@@ -308,6 +311,16 @@ function isDescendantOf(potentialDescendant: Node, ancestor: Node): boolean {
     return false;
 }
 
+function markDirty(): void {
+    isDirty = true;
+    mainTreeView.description = '*';
+}
+
+function clearDirty(): void {
+    isDirty = false;
+    mainTreeView.description = '';
+}
+
 function createEmptyNode(thread: AriadnaThread, parentId: number | null): Node {
     return {
         id: nextNodeId(thread),
@@ -326,6 +339,7 @@ function prependMark(node: Node, mark: string): void {
     } else {
         node.caption = prefix + node.caption;
     }
+    markDirty();
     treeDataProvider.refresh();
     if (detailProvider.currentNode?.id === node.id) {
         detailProvider.showNode(node);
@@ -342,6 +356,7 @@ function insertNodeRelative(node: Node, offset: number): void {
     }
     const newNode = createEmptyNode(currentThread, node.parentId);
     container.childs.splice(container.index + offset, 0, newNode);
+    markDirty();
     treeDataProvider.refresh();
 }
 
@@ -386,6 +401,7 @@ async function loadThread(): Promise<void> {
     lastLoadedUri = uris[0];
     currentThread = data;
     treeDataProvider.setThread(data);
+    clearDirty();
     vscode.window.showInformationMessage(`Thread "${data.title}" loaded`);
 }
 
@@ -395,6 +411,7 @@ export function activate(context: vscode.ExtensionContext) {
         treeDataProvider: treeDataProvider,
         dragAndDropController: treeDataProvider,
     });
+    mainTreeView = treeView;
     context.subscriptions.push(treeView);
 
     detailProvider = new NodeDetailTreeProvider();
@@ -426,6 +443,7 @@ export function activate(context: vscode.ExtensionContext) {
             const json = JSON.stringify(data, null, 2) + '\n';
             await vscode.workspace.fs.writeFile(uri, Buffer.from(json, 'utf-8'));
             lastLoadedUri = uri;
+            clearDirty();
             vscode.window.showInformationMessage(`Thread saved to ${path.basename(uri.fsPath)}`);
         }),
         vscode.commands.registerCommand('ariadna.selectThread', async (thread: AriadnaThread) => {
@@ -439,6 +457,7 @@ export function activate(context: vscode.ExtensionContext) {
                 });
                 if (newTitle !== undefined && newTitle.trim().length > 0) {
                     thread.title = newTitle;
+                    markDirty();
                     treeDataProvider.refresh();
                     detailProvider.showThread(thread);
                 }
@@ -479,6 +498,7 @@ export function activate(context: vscode.ExtensionContext) {
             const lineNum = editor.selection.active.line + 1;
             const lineContent = editor.document.lineAt(lineNum - 1).text;
             node.srcLink = { path: srcPath, lineNum, lineContent };
+            markDirty();
             detailProvider.showNode(node);
             treeDataProvider.refresh();
         }),
@@ -513,6 +533,7 @@ export function activate(context: vscode.ExtensionContext) {
             });
             if (newText !== undefined) {
                 node.comments[index] = newText;
+                markDirty();
                 detailProvider.showNode(node);
             }
         }),
@@ -528,6 +549,7 @@ export function activate(context: vscode.ExtensionContext) {
             });
             if (newCaption !== undefined && newCaption.trim().length > 0) {
                 node.caption = newCaption;
+                markDirty();
                 detailProvider.showNode(node);
                 treeDataProvider.refresh();
             }
@@ -539,6 +561,7 @@ export function activate(context: vscode.ExtensionContext) {
             const parentId = isThread(element) ? null : element.id;
             const newNode = createEmptyNode(currentThread, parentId);
             element.childs.push(newNode);
+            markDirty();
             treeDataProvider.refresh();
         }),
         vscode.commands.registerCommand('ariadna.insertNodeBefore', (node: Node) => {
@@ -562,6 +585,7 @@ export function activate(context: vscode.ExtensionContext) {
             });
             if (text !== undefined) {
                 node.comments.push(text);
+                markDirty();
                 detailProvider.showNode(node);
             }
         }),
@@ -581,6 +605,7 @@ export function activate(context: vscode.ExtensionContext) {
             });
             if (text !== undefined) {
                 node.comments.splice(index + 1, 0, text);
+                markDirty();
                 detailProvider.showNode(node);
             }
         }),
@@ -600,6 +625,7 @@ export function activate(context: vscode.ExtensionContext) {
             });
             if (text !== undefined) {
                 node.comments.splice(index, 0, text);
+                markDirty();
                 detailProvider.showNode(node);
             }
         }),
@@ -610,6 +636,7 @@ export function activate(context: vscode.ExtensionContext) {
                 return;
             }
             node.comments.splice(index, 1);
+            markDirty();
             detailProvider.showNode(node);
         }),
         vscode.commands.registerCommand('ariadna.markCheck', (node: Node) => prependMark(node, '✅')),
@@ -637,6 +664,7 @@ export function activate(context: vscode.ExtensionContext) {
                 return;
             }
             container.childs.splice(container.index, 1);
+            markDirty();
             treeDataProvider.refresh();
         }),
     );
@@ -654,4 +682,8 @@ export function _findNodeById(thread: AriadnaThread, nodeId: number): Node | nul
 
 export function _isDescendantOf(potentialDescendant: Node, ancestor: Node): boolean {
     return isDescendantOf(potentialDescendant, ancestor);
+}
+
+export function _isDirty(): boolean {
+    return isDirty;
 }

@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-02-13 19:16
+
+### Added
+- Индикация несохранённых изменений (dirty flag) — при любой мутации данных треда в заголовке вью `ariadnaView` появляется `*` (через `treeView.description`)
+- Функции `markDirty()` и `clearDirty()` в `extension.ts` для управления флагом
+- `markDirty()` вызывается во всех точках мутации: редактирование title/caption/comments, добавление/удаление узлов и комментариев, drag-and-drop, updateSrcLink, toggle-метки (marks)
+- `clearDirty()` вызывается при успешной загрузке (`loadThread`) и сохранении (`saveThread`) треда
+- Экспортированная функция `_isDirty()` для тестового доступа
+
 ## 2026-02-13 19:06
 
 ### Added
