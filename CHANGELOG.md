@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-02-13 19:28
+
+### Added
+- Команда `ariadna.saveThreadAs` — сохранение треда через диалог выбора файла (прежнее поведение Save)
+- Команда `ariadna.createNewThread` — создание пустого треда с `rootPath` из текущего workspace
+- Кнопки Save As и Create New Thread в заголовке sidebar-панели (inline, группа `navigation`)
+
+### Changed
+- `ariadna.saveThread` — теперь сохраняет напрямую в `lastLoadedUri` без диалога; если файл не ассоциирован, вызывает `saveThreadAs`
+
 ## 2026-02-13 19:16
 
 ### Added

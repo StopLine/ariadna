@@ -57,6 +57,16 @@
         "icon": "$(save)"
       },
       {
+        "command": "ariadna.saveThreadAs",
+        "title": "Save As...",
+        "icon": "$(save-as)"
+      },
+      {
+        "command": "ariadna.createNewThread",
+        "title": "Create New Thread",
+        "icon": "$(new-file)"
+      },
+      {
         "command": "ariadna.editComment",
         "title": "Edit Comment"
       },
@@ -136,6 +146,16 @@
         },
         {
           "command": "ariadna.saveThread",
+          "when": "view == ariadnaView",
+          "group": "navigation"
+        },
+        {
+          "command": "ariadna.createNewThread",
+          "when": "view == ariadnaView",
+          "group": "navigation"
+        },
+        {
+          "command": "ariadna.saveThreadAs",
           "when": "view == ariadnaView",
           "group": "navigation"
         }
