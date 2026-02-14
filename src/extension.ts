@@ -153,7 +153,7 @@ class AriadnaTreeDataProvider implements vscode.TreeDataProvider<TreeElement>, v
     }
 }
 
-type DetailItem = { label: string; value?: string; children?: DetailItem[]; commentIndex?: number };
+type DetailItem = { label: string; value?: string; children?: DetailItem[]; commentIndex?: number; isError?: boolean };
 
 class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
     private items: DetailItem[] = [];
@@ -163,7 +163,7 @@ class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
     private _onDidChangeTreeData = new vscode.EventEmitter<DetailItem | undefined | void>();
     readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
-    showNode(node: Node): void {
+    async showNode(node: Node): Promise<void> {
         this.currentNode = node;
         this.currentThread = null;
         const items: DetailItem[] = [
@@ -171,14 +171,41 @@ class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
         ];
 
         if (node.srcLink) {
-            items.push({
+            const pathItem: DetailItem = { label: 'path', value: node.srcLink.path };
+            const lineNumItem: DetailItem = { label: 'lineNum', value: String(node.srcLink.lineNum) };
+            const lineContentItem: DetailItem = { label: 'lineContent', value: node.srcLink.lineContent };
+            const srcLinkItem: DetailItem = {
                 label: 'srcLink',
-                children: [
-                    { label: 'path', value: node.srcLink.path },
-                    { label: 'lineNum', value: String(node.srcLink.lineNum) },
-                    { label: 'lineContent', value: node.srcLink.lineContent },
-                ],
-            });
+                children: [pathItem, lineNumItem, lineContentItem],
+            };
+
+            const fullPath = path.isAbsolute(node.srcLink.path)
+                ? node.srcLink.path
+                : currentThread?.rootPath
+                    ? path.join(currentThread.rootPath, node.srcLink.path)
+                    : null;
+
+            if (fullPath) {
+                try {
+                    const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(fullPath));
+                    if (node.srcLink.lineNum < 1 || node.srcLink.lineNum > doc.lineCount) {
+                        lineNumItem.isError = true;
+                    } else {
+                        const actualContent = doc.lineAt(node.srcLink.lineNum - 1).text.trim();
+                        if (actualContent !== node.srcLink.lineContent.trim()) {
+                            lineContentItem.isError = true;
+                        }
+                    }
+                } catch {
+                    pathItem.isError = true;
+                }
+            }
+
+            if (pathItem.isError || lineNumItem.isError || lineContentItem.isError) {
+                srcLinkItem.isError = true;
+            }
+
+            items.push(srcLinkItem);
         } else {
             items.push({ label: 'srcLink', value: 'null' });
         }
@@ -234,6 +261,9 @@ class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
                 title: 'Click',
                 arguments: [element.label, undefined],
             };
+        }
+        if (element.isError) {
+            item.iconPath = new vscode.ThemeIcon('warning', new vscode.ThemeColor('errorForeground'));
         }
         if (element.label === 'srcLink') {
             item.contextValue = 'srcLinkField';
@@ -374,7 +404,7 @@ function createEmptyNode(thread: AriadnaThread, parentId: number | null): Node {
     };
 }
 
-function prependMark(node: Node, mark: string): void {
+async function prependMark(node: Node, mark: string): Promise<void> {
     const prefix = mark + ' ';
     if (node.caption.startsWith(prefix)) {
         node.caption = node.caption.slice(prefix.length);
@@ -384,7 +414,7 @@ function prependMark(node: Node, mark: string): void {
     markDirty();
     treeDataProvider.refresh();
     if (detailProvider.currentNode?.id === node.id) {
-        detailProvider.showNode(node);
+        await detailProvider.showNode(node);
     }
 }
 
@@ -612,7 +642,7 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('ariadna.selectNode', async (node: Node) => {
             lastSelectedNodeId = node.id;
             saveState();
-            detailProvider.showNode(node);
+            await detailProvider.showNode(node);
             if (node.srcLink && currentThread?.rootPath) {
                 const isAbsolute = path.isAbsolute(node.srcLink.path);
                 const filePath = isAbsolute
@@ -627,7 +657,7 @@ export function activate(context: vscode.ExtensionContext) {
                 });
             }
         }),
-        vscode.commands.registerCommand('ariadna.updateSrcLink', () => {
+        vscode.commands.registerCommand('ariadna.updateSrcLink', async () => {
             const node = detailProvider.currentNode;
             if (!node || !currentThread) {
                 return;
@@ -644,7 +674,7 @@ export function activate(context: vscode.ExtensionContext) {
             const lineContent = editor.document.lineAt(lineNum - 1).text;
             node.srcLink = { path: srcPath, lineNum, lineContent };
             markDirty();
-            detailProvider.showNode(node);
+            await detailProvider.showNode(node);
             treeDataProvider.refresh();
         }),
         vscode.commands.registerCommand('ariadna.detailItemClick', (label: string, commentIndex?: number) => {
@@ -681,7 +711,7 @@ export function activate(context: vscode.ExtensionContext) {
             if (newText !== undefined) {
                 node.comments[index] = newText;
                 markDirty();
-                detailProvider.showNode(node);
+                await detailProvider.showNode(node);
             }
         }),
         vscode.commands.registerCommand('ariadna.editCaption', async () => {
@@ -697,7 +727,7 @@ export function activate(context: vscode.ExtensionContext) {
             if (newCaption !== undefined && newCaption.trim().length > 0) {
                 node.caption = newCaption;
                 markDirty();
-                detailProvider.showNode(node);
+                await detailProvider.showNode(node);
                 treeDataProvider.refresh();
             }
         }),
@@ -733,7 +763,7 @@ export function activate(context: vscode.ExtensionContext) {
             if (text !== undefined) {
                 node.comments.push(text);
                 markDirty();
-                detailProvider.showNode(node);
+                await detailProvider.showNode(node);
             }
         }),
         vscode.commands.registerCommand('ariadna.addCommentAfter', async (item: DetailItem) => {
@@ -753,7 +783,7 @@ export function activate(context: vscode.ExtensionContext) {
             if (text !== undefined) {
                 node.comments.splice(index + 1, 0, text);
                 markDirty();
-                detailProvider.showNode(node);
+                await detailProvider.showNode(node);
             }
         }),
         vscode.commands.registerCommand('ariadna.addCommentBefore', async (item: DetailItem) => {
@@ -773,10 +803,10 @@ export function activate(context: vscode.ExtensionContext) {
             if (text !== undefined) {
                 node.comments.splice(index, 0, text);
                 markDirty();
-                detailProvider.showNode(node);
+                await detailProvider.showNode(node);
             }
         }),
-        vscode.commands.registerCommand('ariadna.deleteComment', (item: DetailItem) => {
+        vscode.commands.registerCommand('ariadna.deleteComment', async (item: DetailItem) => {
             const node = detailProvider.currentNode;
             const index = item?.commentIndex;
             if (!node || index === undefined) {
@@ -784,7 +814,7 @@ export function activate(context: vscode.ExtensionContext) {
             }
             node.comments.splice(index, 1);
             markDirty();
-            detailProvider.showNode(node);
+            await detailProvider.showNode(node);
         }),
         vscode.commands.registerCommand('ariadna.markCheck', (node: Node) => prependMark(node, '✅')),
         vscode.commands.registerCommand('ariadna.markExclamation', (node: Node) => prependMark(node, '❗')),
@@ -904,7 +934,7 @@ export function activate(context: vscode.ExtensionContext) {
                 if (node) {
                     lastSelectedNodeId = nodeId;
                     mainTreeView.reveal(node, { select: true, focus: false });
-                    detailProvider.showNode(node);
+                    await detailProvider.showNode(node);
                 }
             }
         } catch {

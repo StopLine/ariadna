@@ -1,39 +1,49 @@
-# Синхронизация ограничений max_length=255 для полей AriadnaThread
+# Индикация проблем с полями SrcLink (красная иконка)
 
 ## Context
-В Python-модели (`data_model.py`) добавлены `max_length=255` для полей `title`, `root_path`, `vcs_rev`. Нужно синхронизировать TS-код: валидацию в `model.ts` и InputBox-валидацию в `extension.ts`.
+При выборе узла в панели деталей отображаются поля srcLink (path, lineNum, lineContent). Сейчас они всегда выглядят одинаково, даже если файл не существует, строка за пределами файла или содержимое строки не совпадает. Нужно показывать красную иконку-предупреждение у проблемных полей.
 
-## Файлы
-- `src/model.ts` — `validateThread()`
-- `src/extension.ts` — команда `ariadna.editThreadField`
-- `src/test/model.test.ts` — тесты валидации
+## Правила подсветки
+- **path** — красная иконка, если файл не найден (относительно `rootPath` или абсолютный)
+- **lineNum** — красная иконка, если файл найден, но номер строки за пределами файла
+- **lineContent** — красная иконка, если строка существует, но содержимое отличается (сравнение после `.trim()`)
+- **srcLink** (родительское) — красная иконка, если хотя бы одно дочернее поле проблемное
 
-## Изменения
+## Файлы для изменения
+- `src/extension.ts` — единственный файл
 
-### 1. `src/model.ts` — `validateThread()`
-Добавить проверки длины после существующей проверки `!thread.title`:
+## План
+
+### 1. Добавить `isError` в `DetailItem` (строка 156)
 ```typescript
-if (thread.title.length > 255) {
-    throw new ValidationError('title', 'must be at most 255 characters');
-}
-if (thread.rootPath.length > 255) {
-    throw new ValidationError('rootPath', 'must be at most 255 characters');
-}
-if (thread.vcsRev !== null && thread.vcsRev.length > 255) {
-    throw new ValidationError('vcsRev', 'must be at most 255 characters');
+type DetailItem = { label: string; value?: string; children?: DetailItem[]; commentIndex?: number; isError?: boolean };
+```
+
+### 2. Сделать `showNode()` асинхронным (строка 166)
+Валидация SrcLink требует чтения файла через `vscode.workspace.openTextDocument()`. После построения items для srcLink — проверить:
+- `openTextDocument(uri)` кидает исключение → `pathError = true`
+- `lineNum < 1 || lineNum > doc.lineCount` → `lineNumError = true`
+- `doc.lineAt(lineNum - 1).text.trim() !== lineContent.trim()` → `lineContentError = true`
+
+Пометить `isError = true` на проблемных дочерних элементах и на самом `srcLink`, если есть хотя бы одна проблема.
+
+Путь к файлу: `path.isAbsolute(srcLink.path) ? srcLink.path : path.join(currentThread.rootPath, srcLink.path)`
+
+### 3. В `getTreeItem()` (строка 212) — показать красную иконку
+```typescript
+if (element.isError) {
+    item.iconPath = new vscode.ThemeIcon('warning', new vscode.ThemeColor('errorForeground'));
 }
 ```
 
-### 2. `src/extension.ts` — `ariadna.editThreadField`
-Добавить `validateInput` для полей, где его ещё нет:
-- **title** — добавить `v.length > 255 ? 'Max 255 characters' : ...`
-- **rootPath** — добавить `validateInput: (v) => v.length > 255 ? 'Max 255 characters' : undefined`
-- **vcsRev** — добавить `validateInput: (v) => v.length > 255 ? 'Max 255 characters' : undefined`
-
-### 3. `src/test/model.test.ts` — добавить тесты
-Тесты на то, что `title`, `rootPath`, `vcsRev` длиной >255 бросают `ValidationError`.
+### 4. Обновить вызовы `showNode()`
+`showNode()` станет async, поэтому вызовы нужно обновить с `await`:
+- `ariadna.selectNode` (строка 615) — уже в async-функции, добавить `await`
+- `ariadna.editComment` (строка 684) — добавить `await`
+- `ariadna.editCaption` (строка 700) — добавить `await`
+- `prependMark()` (строка 387) — сделать async или вызвать без await (fire-and-forget допустимо)
+- Восстановление сессии (строка 907) — добавить `await`
 
 ## Проверка
-- `npm run compile`
-- `npm run lint`
-- `npm run test`
+- `npm run compile` — без ошибок
+- `npm run lint` — без ошибок
