@@ -8,6 +8,7 @@ let currentThread: AriadnaThread | null = null;
 let lastLoadedUri: vscode.Uri | null = null;
 let lastDetailClick: { label: string; commentIndex?: number; timestamp: number } | null = null;
 let lastThreadClickTime = 0;
+let lastNodeClickTime = 0;
 let isDirty = false;
 let mainTreeView: vscode.TreeView<TreeElement>;
 let extensionContext: vscode.ExtensionContext;
@@ -640,6 +641,13 @@ export function activate(context: vscode.ExtensionContext) {
             detailProvider.showThread(thread);
         }),
         vscode.commands.registerCommand('ariadna.selectNode', async (node: Node) => {
+            const now = Date.now();
+            if (now - lastNodeClickTime < DOUBLE_CLICK_THRESHOLD) {
+                lastNodeClickTime = 0;
+                await vscode.commands.executeCommand('ariadna.editCaption');
+                return;
+            }
+            lastNodeClickTime = now;
             lastSelectedNodeId = node.id;
             saveState();
             await detailProvider.showNode(node);
