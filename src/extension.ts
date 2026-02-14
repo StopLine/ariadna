@@ -158,12 +158,14 @@ type DetailItem = { label: string; value?: string; children?: DetailItem[]; comm
 class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
     private items: DetailItem[] = [];
     currentNode: Node | null = null;
+    currentThread: AriadnaThread | null = null;
 
     private _onDidChangeTreeData = new vscode.EventEmitter<DetailItem | undefined | void>();
     readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
     showNode(node: Node): void {
         this.currentNode = node;
+        this.currentThread = null;
         const items: DetailItem[] = [
             { label: 'caption', value: node.caption },
         ];
@@ -196,6 +198,7 @@ class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
 
     showThread(thread: AriadnaThread): void {
         this.currentNode = null;
+        this.currentThread = thread;
         const items: DetailItem[] = [
             { label: 'title', value: thread.title },
             { label: 'rootPath', value: thread.rootPath },
@@ -225,7 +228,7 @@ class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
                 arguments: [element.label, element.commentIndex],
             };
         }
-        if (element.label === 'caption') {
+        if (element.label === 'caption' || ['title', 'rootPath', 'description', 'vcsRev'].includes(element.label)) {
             item.command = {
                 command: 'ariadna.detailItemClick',
                 title: 'Click',
@@ -656,6 +659,8 @@ export function activate(context: vscode.ExtensionContext) {
                     vscode.commands.executeCommand('ariadna.editComment', commentIndex);
                 } else if (label === 'caption') {
                     vscode.commands.executeCommand('ariadna.editCaption');
+                } else if (['title', 'rootPath', 'description', 'vcsRev'].includes(label)) {
+                    vscode.commands.executeCommand('ariadna.editThreadField', label);
                 }
                 lastDetailClick = null;
                 return;
@@ -787,6 +792,67 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('ariadna.markFire', (node: Node) => prependMark(node, '🔥')),
         vscode.commands.registerCommand('ariadna.markCross', (node: Node) => prependMark(node, '❌')),
         vscode.commands.registerCommand('ariadna.markHeart', (node: Node) => prependMark(node, '❤️')),
+        vscode.commands.registerCommand('ariadna.editThreadField', async (field: string) => {
+            const thread = detailProvider.currentThread;
+            if (!thread) {
+                return;
+            }
+            let currentValue: string;
+            let prompt: string;
+            let validateInput: ((v: string) => string | undefined) | undefined;
+
+            switch (field) {
+                case 'title':
+                    currentValue = thread.title;
+                    prompt = 'Edit thread title';
+                    validateInput = (v) => !v || v.trim().length === 0 ? 'Title cannot be empty' : undefined;
+                    break;
+                case 'rootPath':
+                    currentValue = thread.rootPath;
+                    prompt = 'Edit root path';
+                    break;
+                case 'description':
+                    currentValue = thread.description ?? '';
+                    prompt = 'Edit description (empty to clear)';
+                    validateInput = (v) => v.length > 255 ? 'Max 255 characters' : undefined;
+                    break;
+                case 'vcsRev':
+                    currentValue = thread.vcsRev ?? '';
+                    prompt = 'Edit VCS revision (empty to clear)';
+                    break;
+                default:
+                    return;
+            }
+
+            const newValue = await vscode.window.showInputBox({
+                value: currentValue,
+                prompt,
+                validateInput,
+            });
+            if (newValue === undefined) {
+                return;
+            }
+
+            switch (field) {
+                case 'title':
+                    if (newValue.trim().length === 0) { return; }
+                    thread.title = newValue;
+                    break;
+                case 'rootPath':
+                    thread.rootPath = newValue;
+                    break;
+                case 'description':
+                    thread.description = newValue.length === 0 ? null : newValue;
+                    break;
+                case 'vcsRev':
+                    thread.vcsRev = newValue.length === 0 ? null : newValue;
+                    break;
+            }
+
+            markDirty();
+            detailProvider.showThread(thread);
+            treeDataProvider.refresh();
+        }),
         vscode.commands.registerCommand('ariadna.deleteNode', async (node: Node) => {
             if (!currentThread) {
                 return;

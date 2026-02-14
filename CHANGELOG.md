@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-02-14 12:46
+
+### Added
+- Редактирование полей `AriadnaThread` по двойному клику в панели Node Details — поля `title`, `rootPath`, `description`, `vcsRev` теперь редактируемы аналогично `caption` у Node
+- Команда `ariadna.editThreadField` — InputBox-редактирование поля треда с валидацией: `title` не может быть пустым, `description` макс. 255 символов, `description` и `vcsRev` при пустом вводе сбрасываются в `null`
+- Поле `currentThread` в `NodeDetailTreeProvider` — хранит ссылку на текущий отображаемый тред для редактирования его полей
+
 ## 2026-02-14 11:07
 
 ### Added
