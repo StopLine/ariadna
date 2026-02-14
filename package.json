@@ -44,6 +44,11 @@
         "icon": "$(folder-opened)"
       },
       {
+        "command": "ariadna.loadRecentThread",
+        "title": "Load Recent Thread",
+        "icon": "$(history)"
+      },
+      {
         "command": "ariadna.selectNode",
         "title": "Select Node"
       },
@@ -142,22 +147,27 @@
         {
           "command": "ariadna.loadThread",
           "when": "view == ariadnaView",
-          "group": "navigation"
+          "group": "navigation@1"
+        },
+        {
+          "command": "ariadna.loadRecentThread",
+          "when": "view == ariadnaView",
+          "group": "navigation@2"
         },
         {
           "command": "ariadna.saveThread",
           "when": "view == ariadnaView",
-          "group": "navigation"
+          "group": "navigation@3"
         },
         {
           "command": "ariadna.createNewThread",
           "when": "view == ariadnaView",
-          "group": "navigation"
+          "group": "navigation@4"
         },
         {
           "command": "ariadna.saveThreadAs",
           "when": "view == ariadnaView",
-          "group": "navigation"
+          "group": "navigation@5"
         }
       ],
       "view/item/context": [

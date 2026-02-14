@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-02-14 11:07
+
+### Added
+- Команда `ariadna.loadRecentThread` — быстрый доступ к недавно открытым тредам через QuickPick-список (до 10 последних)
+- Функция `addRecentThread()` в `extension.ts` — сохраняет URI и title треда в `workspaceState` (`ariadna.recentThreads`), поддерживает FIFO-порядок с лимитом 10 записей
+- Кнопка «Load Recent Thread» (иконка `$(history)`) в заголовке sidebar-панели `ariadnaView` (группа `navigation@2`)
+- При загрузке треда через `loadThread`, `loadRecentThread`, `saveThreadAs` и при восстановлении состояния тред автоматически добавляется в список недавних
+
+### Changed
+- Упорядочены кнопки заголовка sidebar-панели через явные `group` с суффиксами `@1`–`@5` (ранее все были в одной группе `navigation` без порядка)
+
 ## 2026-02-13 19:56
 
 ### Added

@@ -329,6 +329,18 @@ function saveState(): void {
     state.update('ariadna.lastSelectedNodeId', lastSelectedNodeId ?? undefined);
 }
 
+function addRecentThread(uri: vscode.Uri, title: string): void {
+    const state = extensionContext.workspaceState;
+    const recent = state.get<{ uri: string; title: string }[]>('ariadna.recentThreads', []);
+    const uriStr = uri.toString();
+    const filtered = recent.filter(r => r.uri !== uriStr);
+    filtered.unshift({ uri: uriStr, title });
+    if (filtered.length > 10) {
+        filtered.length = 10;
+    }
+    state.update('ariadna.recentThreads', filtered);
+}
+
 async function confirmSaveIfDirty(): Promise<boolean> {
     if (!isDirty) {
         return true;
@@ -434,6 +446,7 @@ async function loadThread(): Promise<void> {
     clearDirty();
     lastSelectedNodeId = null;
     saveState();
+    addRecentThread(uris[0], data.title);
     vscode.window.showInformationMessage(`Thread "${data.title}" loaded`);
 }
 
@@ -459,6 +472,66 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.showInformationMessage('Hello World from Ariadna!');
         }),
         vscode.commands.registerCommand('ariadna.loadThread', loadThread),
+        vscode.commands.registerCommand('ariadna.loadRecentThread', async () => {
+            const state = extensionContext.workspaceState;
+            const recent = state.get<{ uri: string; title: string }[]>('ariadna.recentThreads', []);
+            if (recent.length === 0) {
+                vscode.window.showInformationMessage('No recent threads');
+                return;
+            }
+
+            const items = recent.map(r => ({
+                label: r.title,
+                description: vscode.Uri.parse(r.uri).fsPath,
+                uri: r.uri,
+            }));
+
+            const picked = await vscode.window.showQuickPick(items, {
+                placeHolder: 'Select a recent thread',
+            });
+            if (!picked) {
+                return;
+            }
+
+            if (!await confirmSaveIfDirty()) {
+                return;
+            }
+
+            const uri = vscode.Uri.parse(picked.uri);
+            const fileContent = await vscode.workspace.fs.readFile(uri);
+            const text = Buffer.from(fileContent).toString('utf-8');
+
+            let data: AriadnaThread;
+            try {
+                data = normalizeThread(JSON.parse(text));
+            } catch {
+                await vscode.window.showErrorMessage('Failed to parse JSON file', { modal: true });
+                return;
+            }
+
+            try {
+                validateThread(data);
+            } catch (err) {
+                if (err instanceof ValidationError) {
+                    await vscode.window.showErrorMessage(
+                        `Validation error in field "${err.field}":\n${err.message}`,
+                        { modal: true },
+                    );
+                } else {
+                    await vscode.window.showErrorMessage(`Unexpected error: ${err}`, { modal: true });
+                }
+                return;
+            }
+
+            lastLoadedUri = uri;
+            currentThread = data;
+            treeDataProvider.setThread(data);
+            clearDirty();
+            lastSelectedNodeId = null;
+            saveState();
+            addRecentThread(uri, data.title);
+            vscode.window.showInformationMessage(`Thread "${data.title}" loaded`);
+        }),
         vscode.commands.registerCommand('ariadna.saveThread', async () => {
             if (!currentThread) {
                 vscode.window.showWarningMessage('No thread loaded');
@@ -492,6 +565,7 @@ export function activate(context: vscode.ExtensionContext) {
             await vscode.workspace.fs.writeFile(uri, Buffer.from(json, 'utf-8'));
             lastLoadedUri = uri;
             clearDirty();
+            addRecentThread(uri, currentThread.title);
             vscode.window.showInformationMessage(`Thread saved to ${path.basename(uri.fsPath)}`);
         }),
         vscode.commands.registerCommand('ariadna.createNewThread', async () => {
@@ -755,6 +829,7 @@ export function activate(context: vscode.ExtensionContext) {
             currentThread = data;
             treeDataProvider.setThread(data);
             clearDirty();
+            addRecentThread(uri, data.title);
 
             // Restore selected node
             const nodeId = state.get<number>('ariadna.lastSelectedNodeId');
