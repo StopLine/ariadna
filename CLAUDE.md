@@ -12,8 +12,9 @@ Ariadna is a VS Code extension for navigating and annotating source code executi
 - `npm run watch` — compile in watch mode (default VS Code build task)
 - `npm run lint` — run ESLint on `src/`
 - `npm run test` — run tests via `@vscode/test-cli` (runs compile + lint first via `pretest`)
+- Run a single test: `npm run compile && npx vscode-test --grep "test name pattern"`
 
-To debug: use the **"Run Extension"** launch configuration in VS Code, which starts an Extension Development Host with the compiled output.
+Tests run inside VS Code Electron (downloaded automatically), not plain Node. To debug: use the **"Run Extension"** launch configuration in VS Code.
 
 ## Architecture
 
@@ -24,6 +25,7 @@ To debug: use the **"Run Extension"** launch configuration in VS Code, which sta
 - **Thread structure**: `AriadnaThread` has `childs: Node[]` directly (no wrapper root node). Each `Node` has `id`, `parentId`, `srcLink`, `caption`, `comments[]`, and `childs[]`.
 - **Output**: compiled JS goes to `out/` (CommonJS modules, ES2022 target).
 - **VS Code API**: targets VS Code `^1.85.0`. The `@types/vscode` package provides types — do not import `vscode` as a runtime dependency; it is provided by the host.
+- **State management**: extension state (`currentThread`, `isDirty`, `lastLoadedUri`, etc.) lives in module-level `let` variables in `extension.ts`. Session persistence uses `workspaceState` (last thread URI, selected node, recent threads).
 - **Commands**: defined in `package.json` `contributes.commands` — includes node CRUD (`addChildNode`, `insertNodeBefore/After`, `deleteNode`), editing (`editCaption`, `editComment`), comments (`addComment`, `addCommentBefore/After`, `deleteComment`), visual marks (emoji toggles), `loadThread`/`saveThread`, and `updateSrcLink`.
 
 ## Data Model
@@ -38,13 +40,11 @@ To debug: use the **"Run Extension"** launch configuration in VS Code, which sta
 - Tests are in `src/test/model.test.ts` using Mocha (TDD `suite`/`test` style).
 - Test runner: `@vscode/test-cli` + `@vscode/test-electron`, configured in `.vscode-test.mjs` (runs compiled JS from `out/test/`).
 - Factory helpers (`makeNode`, `makeThread`) build valid objects for testing.
-- Helper exports from `extension.ts` (`_getCurrentThread`, `_findNodeById`, `_isDescendantOf`) are available for test access.
+- Helper exports from `extension.ts` (`_getCurrentThread`, `_findNodeById`, `_isDescendantOf`, `_isDirty`) are prefixed with `_` and available for test access.
 
 ## Rules for Claude Code
 
-- не используй vscode-test
-
-- при коммите не забудь добавить новые файл из @.claude из папки проекта, за исключением @settings.local.json
-
-- записывай план в @.claude в папке проекта, а не на уровне пользователя
+- Не используй `vscode-test` напрямую — только через `@vscode/test-cli` (`npx vscode-test`).
+- При коммите добавляй новые файлы из `.claude/` папки проекта, за исключением `settings.local.json`.
+- Планы записывай в `.claude/plans/` в папке проекта, а не на уровне пользователя (`~/.claude/`).
 

@@ -1,20 +1,20 @@
 # Ariadna
 
-Vscode Плагин для анализа кода в виде древовидного набора закладок
+A VS Code extension for code analysis using tree-structured bookmarks.
 
-## Цели
+## Goals
 
-Основная цель -- дать наглядное представление и вохможность фиксации артефактов для исследования некоторой проблемы (use case).
+The main goal is to provide a clear visual representation and the ability to capture artifacts while investigating a particular problem (use case).
 
-- быстрое погружения в контекст задачи
-- передача знаний и контекста разбора use case коллегам
-- расширение и увеличение глубины анализа за счёт наглядного представления и возможности фиксации наблюдений
-- возможность работы для людей с ослабленными когнитивными функциями или дефицитом памяти и внимания
+- Quick immersion into the task context
+- Sharing knowledge and use case analysis context with colleagues
+- Expanding and deepening analysis through visual representation and the ability to record observations
+- Accessibility for people with reduced cognitive function or attention/memory deficits
 
 ## Features
 
-- задание и просматр дерева закладок к коду
-- быстрое переключение между проектами (тредами)
-- хранение в json формате простой структуры
-- возможность добавления комментариев
-- быстрые визуальные отметки в виде эмодзи
+- Create and browse a tree of code bookmarks
+- Quick switching between projects (threads)
+- Simple JSON-based storage format
+- Comment support
+- Quick visual marks via emoji
