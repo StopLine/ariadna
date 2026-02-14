@@ -45,7 +45,7 @@ class AriadnaTreeDataProvider implements vscode.TreeDataProvider<TreeElement>, v
                     ? vscode.TreeItemCollapsibleState.Expanded
                     : vscode.TreeItemCollapsibleState.None,
             );
-            item.tooltip = element.description ?? undefined;
+            item.tooltip = element.title ?? undefined;
             item.contextValue = 'threadItem';
             item.command = {
                 command: 'ariadna.selectThread',
