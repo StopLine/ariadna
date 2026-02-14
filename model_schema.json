@@ -94,12 +94,14 @@
   "properties": {
     "title": {
       "description": "Название треда",
+      "maxLength": 255,
       "title": "Title",
       "type": "string"
     },
     "root_path": {
       "default": "/",
       "description": "Родительский каталог для исходного кода",
+      "maxLength": 255,
       "title": "Root Path",
       "type": "string"
     },
@@ -129,6 +131,7 @@
     "vcs_rev": {
       "anyOf": [
         {
+          "maxLength": 255,
           "type": "string"
         },
         {

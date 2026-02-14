@@ -30,12 +30,14 @@ class Node(BaseModel):
 
 class AriadnaThread(BaseModel):
     """Модель треда"""
-    title: str = Field(description="Название треда")
-    root_path: str = Field('/', description="Родительский каталог для исходного кода")
+    title: str = Field(description="Название треда", max_length=255)
+    root_path: str = Field('/', description="Родительский каталог для исходного кода",
+                           max_length=255)
     description: Comment | None = Field(None, description="Описание треда")
     childs: list[Node] = Field([], description="Список дочерних узлов дерева")
     vcs_rev: str | None = Field(None, description="Ревизия системы контроля версий, "
-                                "для которой актулен данный тред")
+                                "для которой актулен данный тред",
+                                max_length=255)
 
 
 def build_sample1() -> AriadnaThread:
