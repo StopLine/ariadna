@@ -35,10 +35,6 @@
     },
     "commands": [
       {
-        "command": "ariadna.helloWorld",
-        "title": "Hello World"
-      },
-      {
         "command": "ariadna.loadThread",
         "title": "Load Thread",
         "icon": "$(folder-opened)"

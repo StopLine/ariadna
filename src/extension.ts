@@ -502,9 +502,6 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(detailTreeView);
 
     context.subscriptions.push(
-        vscode.commands.registerCommand('ariadna.helloWorld', () => {
-            vscode.window.showInformationMessage('Hello World from Ariadna!');
-        }),
         vscode.commands.registerCommand('ariadna.loadThread', loadThread),
         vscode.commands.registerCommand('ariadna.loadRecentThread', async () => {
             const state = extensionContext.workspaceState;
