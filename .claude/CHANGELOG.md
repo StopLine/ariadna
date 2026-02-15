@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-02-15 11:34
+
+### Added
+- Warning-иконка на поле `rootPath` в панели Thread Details — если директория недоступна или не является папкой, отображается `warning` с `errorForeground` (аналогично валидации `srcLink.path`)
+- Команда `ariadna.selectRootPath` — выбор папки `rootPath` через стандартный диалог `showOpenDialog` (только папки)
+- Inline-кнопка «Select Folder» в контекстном меню элемента `rootPath` в панели Details (`contextValue = 'rootPathField'`)
+
+### Changed
+- Метод `showThread()` в `NodeDetailTreeProvider` стал асинхронным — проверяет существование директории `rootPath` через `vscode.workspace.fs.stat()` при каждом отображении треда
+
 ## 2026-02-14 20:21
 
 ### Added

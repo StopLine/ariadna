@@ -53,6 +53,10 @@
         "title": "Update from Editor"
       },
       {
+        "command": "ariadna.selectRootPath",
+        "title": "Select Folder"
+      },
+      {
         "command": "ariadna.saveThread",
         "title": "Save Thread",
         "icon": "$(save)"
@@ -170,6 +174,11 @@
         {
           "command": "ariadna.updateSrcLink",
           "when": "view == ariadnaDetail && viewItem == srcLinkField",
+          "group": "inline"
+        },
+        {
+          "command": "ariadna.selectRootPath",
+          "when": "view == ariadnaDetail && viewItem == rootPathField",
           "group": "inline"
         },
         {

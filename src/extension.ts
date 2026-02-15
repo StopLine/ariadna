@@ -224,12 +224,23 @@ class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
         this._onDidChangeTreeData.fire();
     }
 
-    showThread(thread: AriadnaThread): void {
+    async showThread(thread: AriadnaThread): Promise<void> {
         this.currentNode = null;
         this.currentThread = thread;
+        const rootPathItem: DetailItem = { label: 'rootPath', value: thread.rootPath };
+        if (thread.rootPath) {
+            try {
+                const stat = await vscode.workspace.fs.stat(vscode.Uri.file(thread.rootPath));
+                if ((stat.type & vscode.FileType.Directory) === 0) {
+                    rootPathItem.isError = true;
+                }
+            } catch {
+                rootPathItem.isError = true;
+            }
+        }
         const items: DetailItem[] = [
             { label: 'title', value: thread.title },
-            { label: 'rootPath', value: thread.rootPath },
+            rootPathItem,
             { label: 'description', value: thread.description ?? '(none)' },
             { label: 'vcsRev', value: thread.vcsRev ?? '(none)' },
         ];
@@ -268,6 +279,9 @@ class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
         }
         if (element.label === 'srcLink') {
             item.contextValue = 'srcLinkField';
+        }
+        if (element.label === 'rootPath') {
+            item.contextValue = 'rootPathField';
         }
         if (element.label === 'comments' && element.commentIndex === undefined) {
             item.contextValue = 'commentsGroup';
@@ -630,12 +644,12 @@ export function activate(context: vscode.ExtensionContext) {
                     thread.title = newTitle;
                     markDirty();
                     treeDataProvider.refresh();
-                    detailProvider.showThread(thread);
+                    await detailProvider.showThread(thread);
                 }
                 return;
             }
             lastThreadClickTime = now;
-            detailProvider.showThread(thread);
+            await detailProvider.showThread(thread);
         }),
         vscode.commands.registerCommand('ariadna.selectNode', async (node: Node) => {
             const now = Date.now();
@@ -681,6 +695,26 @@ export function activate(context: vscode.ExtensionContext) {
             markDirty();
             await detailProvider.showNode(node);
             treeDataProvider.refresh();
+        }),
+        vscode.commands.registerCommand('ariadna.selectRootPath', async () => {
+            if (!currentThread) {
+                return;
+            }
+            const result = await vscode.window.showOpenDialog({
+                canSelectFiles: false,
+                canSelectFolders: true,
+                canSelectMany: false,
+                defaultUri: currentThread.rootPath
+                    ? vscode.Uri.file(currentThread.rootPath)
+                    : undefined,
+                openLabel: 'Select Root Path',
+            });
+            if (result && result[0]) {
+                currentThread.rootPath = result[0].fsPath;
+                markDirty();
+                await detailProvider.showThread(currentThread);
+                treeDataProvider.refresh();
+            }
         }),
         vscode.commands.registerCommand('ariadna.detailItemClick', (label: string, commentIndex?: number) => {
             const now = Date.now();
@@ -885,7 +919,7 @@ export function activate(context: vscode.ExtensionContext) {
             }
 
             markDirty();
-            detailProvider.showThread(thread);
+            await detailProvider.showThread(thread);
             treeDataProvider.refresh();
         }),
         vscode.commands.registerCommand('ariadna.deleteNode', async (node: Node) => {
