@@ -258,9 +258,9 @@ class NodeDetailTreeProvider implements vscode.TreeDataProvider<DetailItem> {
         );
         if (element.value !== undefined) {
             item.description = element.value;
+            item.tooltip = element.value;
         }
         if (element.commentIndex !== undefined) {
-            item.tooltip = element.label;
             item.command = {
                 command: 'ariadna.detailItemClick',
                 title: 'Click',
