@@ -5,3 +5,5 @@ samples/
 *.vsix
 *.zip
 ariadna.code-workspace
+package-lock.json
+sample1_data.json
