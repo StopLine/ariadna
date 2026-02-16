@@ -1,6 +1,6 @@
 # Ariadna 
 
-Yet another tree view bookmarks plugin for code analysis and documentation.
+Yet another tree view bookmarks extension for code analysis and documentation.
 
 ## Overview
 
@@ -8,7 +8,7 @@ Ariadna helps developers create a clear roadmap of use cases, especially in larg
 
 In many projects, understanding how different parts of the system interact — and why they exist — can be difficult, especially when documentation is scattered or inconsistent. Ariadna solves this problem by allowing developers to create Threads, each representing a single use case, and to break down project into Nodes, which correspond to meaningful units of code and logic.
 
-![main_screenshot.png](https://github.com/StopLine/ariadna/blob/main/main_screenshot.png)
+![main_screenshot.png](https://raw.githubusercontent.com/StopLine/ariadna/refs/heads/main/main_screenshot.png)
 
 ## Features
 

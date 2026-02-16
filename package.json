@@ -1,7 +1,9 @@
 {
   "name": "ariadna",
   "displayName": "Ariadna",
-  "description": "VS Code extension",
+  "description": "Tree view bookmarks extension for code analysis and documentation",
+  "publisher": "AlexanderBatalschikov",
+  "repository": "https://github.com/StopLine/ariadna.git",
   "version": "0.1.0",
   "engines": {
     "vscode": "^1.85.0"
