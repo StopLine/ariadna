@@ -39,103 +39,127 @@
       {
         "command": "ariadna.loadThread",
         "title": "Load Thread",
-        "icon": "$(folder-opened)"
+        "icon": "$(folder-opened)",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.loadRecentThread",
         "title": "Load Recent Thread",
-        "icon": "$(history)"
+        "icon": "$(history)",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.selectNode",
-        "title": "Select Node"
+        "title": "Select Node",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.updateSrcLink",
-        "title": "Update from Editor"
+        "title": "Update from Editor",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.selectRootPath",
-        "title": "Select Folder"
+        "title": "Select Folder",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.saveThread",
         "title": "Save Thread",
-        "icon": "$(save)"
+        "icon": "$(save)",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.saveThreadAs",
         "title": "Save As...",
-        "icon": "$(save-as)"
+        "icon": "$(save-as)",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.createNewThread",
         "title": "Create New Thread",
-        "icon": "$(new-file)"
+        "icon": "$(new-file)",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.editComment",
-        "title": "Edit Comment"
+        "title": "Edit Comment",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.editCaption",
-        "title": "Edit Caption"
+        "title": "Edit Caption",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.addChildNode",
-        "title": "Add Child"
+        "title": "Add Child",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.insertNodeBefore",
-        "title": "Insert Before"
+        "title": "Insert Before",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.insertNodeAfter",
-        "title": "Insert After"
+        "title": "Insert After",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.deleteNode",
-        "title": "Delete"
+        "title": "Delete",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.addComment",
-        "title": "Add"
+        "title": "Add",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.addCommentBefore",
-        "title": "Add Before"
+        "title": "Add Before",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.addCommentAfter",
-        "title": "Add After"
+        "title": "Add After",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.deleteComment",
-        "title": "Delete"
+        "title": "Delete",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.markCheck",
-        "title": "✅"
+        "title": "✅",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.markExclamation",
-        "title": "❗"
+        "title": "❗",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.markQuestion",
-        "title": "❓"
+        "title": "❓",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.markFire",
-        "title": "🔥"
+        "title": "🔥",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.markCross",
-        "title": "❌"
+        "title": "❌",
+        "category": "Ariadna"
       },
       {
         "command": "ariadna.markHeart",
-        "title": "❤️"
+        "title": "❤️",
+        "category": "Ariadna"
       }
     ],
     "submenus": [
@@ -236,22 +260,28 @@
       ],
       "ariadna.marksSubmenu": [
         {
-          "command": "ariadna.markCheck"
+          "command": "ariadna.markCheck",
+          "when": "view == ariadnaView && viewItem == nodeItem"
         },
         {
-          "command": "ariadna.markExclamation"
+          "command": "ariadna.markExclamation",
+          "when": "view == ariadnaView && viewItem == nodeItem"
         },
         {
-          "command": "ariadna.markQuestion"
+          "command": "ariadna.markQuestion",
+          "when": "view == ariadnaView && viewItem == nodeItem"
         },
         {
-          "command": "ariadna.markFire"
+          "command": "ariadna.markFire",
+          "when": "view == ariadnaView && viewItem == nodeItem"
         },
         {
-          "command": "ariadna.markCross"
+          "command": "ariadna.markCross",
+          "when": "view == ariadnaView && viewItem == nodeItem"
         },
         {
-          "command": "ariadna.markHeart"
+          "command": "ariadna.markHeart",
+          "when": "view == ariadnaView && viewItem == nodeItem"
         }
       ]
     }
