@@ -31,17 +31,18 @@ In many projects, understanding how different parts of the system interact — a
 ### Quick Start
 
 1. Create a new **Thread** using the **"Create New Thread"** button  
-2. Fill in:
+2. Fill in root node:
    * `title`
    * `rootPath` (auto-detected, but can be modified)
    * `description` (optional)
    * `vcsRev` (optional)
-3. Add your first **Node**
-4. Link it to a code location using `srcLink`  
+3. Click on New Node and link it to a code location using `srcLink`  
    - Open the desired location in the editor  
-   - Click **"Update From Editor"** to populate the field automatically  
-5. Add comments  
-6. Create child Nodes if needed  
+   - Click **"Update From Editor"** to populate the field automatically
+4. Change caption if needed (by default filled by srcLink.lineContent)
+5. Add comments
+6. Create child and neighbor tree Nodes if needed
+
 
 ## Core Concepts
 
