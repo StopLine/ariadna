@@ -503,6 +503,8 @@ async function loadThread(): Promise<void> {
     lastSelectedNodeId = null;
     saveState();
     addRecentThread(uris[0], data.title);
+treeDataProvider.refresh();
+    await detailProvider.showThread(currentThread);
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -582,6 +584,9 @@ export function activate(context: vscode.ExtensionContext) {
             lastSelectedNodeId = null;
             saveState();
             addRecentThread(uri, data.title);
+            treeDataProvider.refresh();
+            await detailProvider.showThread(currentThread);
+
         }),
         vscode.commands.registerCommand('ariadna.saveThread', async () => {
             if (!currentThread) {
