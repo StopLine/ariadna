@@ -433,18 +433,19 @@ async function prependMark(node: Node, mark: string): Promise<void> {
     }
 }
 
-function insertNodeRelative(node: Node, offset: number): void {
+function insertNodeRelative(node: Node, offset: number): Node | undefined {
     if (!currentThread) {
-        return;
+        return undefined;
     }
     const container = findParentContainer(currentThread, node.id);
     if (!container) {
-        return;
+        return undefined;
     }
     const newNode = createEmptyNode(currentThread, node.parentId);
     container.childs.splice(container.index + offset, 0, newNode);
     markDirty();
     treeDataProvider.refresh();
+    return newNode;
 }
 
 async function loadThread(): Promise<void> {
@@ -772,7 +773,7 @@ export function activate(context: vscode.ExtensionContext) {
                 treeDataProvider.refresh();
             }
         }),
-        vscode.commands.registerCommand('ariadna.addChildNode', (element: TreeElement) => {
+        vscode.commands.registerCommand('ariadna.addChildNode', async (element: TreeElement) => {
             if (!currentThread) {
                 return;
             }
@@ -781,12 +782,22 @@ export function activate(context: vscode.ExtensionContext) {
             element.childs.push(newNode);
             markDirty();
             treeDataProvider.refresh();
+            await mainTreeView.reveal(newNode, { select: true, focus: true });
+            await vscode.commands.executeCommand('ariadna.selectNode', newNode);
         }),
-        vscode.commands.registerCommand('ariadna.insertNodeBefore', (node: Node) => {
-            insertNodeRelative(node, 0);
+        vscode.commands.registerCommand('ariadna.insertNodeBefore', async (node: Node) => {
+            const newNode = insertNodeRelative(node, 0);
+            if (newNode) {
+                await mainTreeView.reveal(newNode, { select: true, focus: true });
+                await vscode.commands.executeCommand('ariadna.selectNode', newNode);
+            }
         }),
-        vscode.commands.registerCommand('ariadna.insertNodeAfter', (node: Node) => {
-            insertNodeRelative(node, 1);
+        vscode.commands.registerCommand('ariadna.insertNodeAfter', async (node: Node) => {
+            const newNode = insertNodeRelative(node, 1);
+            if (newNode) {
+                await mainTreeView.reveal(newNode, { select: true, focus: true });
+                await vscode.commands.executeCommand('ariadna.selectNode', newNode);
+            }
         }),
         vscode.commands.registerCommand('ariadna.addComment', async () => {
             const node = detailProvider.currentNode;

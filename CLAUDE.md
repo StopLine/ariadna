@@ -26,7 +26,7 @@ Tests run inside VS Code Electron (downloaded automatically), not plain Node. To
 - **Output**: compiled JS goes to `out/` (CommonJS modules, ES2022 target).
 - **VS Code API**: targets VS Code `^1.85.0`. The `@types/vscode` package provides types — do not import `vscode` as a runtime dependency; it is provided by the host.
 - **State management**: extension state (`currentThread`, `isDirty`, `lastLoadedUri`, etc.) lives in module-level `let` variables in `extension.ts`. Session persistence uses `workspaceState` (last thread URI, selected node, recent threads).
-- **Commands**: defined in `package.json` `contributes.commands` — includes node CRUD (`addChildNode`, `insertNodeBefore/After`, `deleteNode`), editing (`editCaption`, `editComment`), comments (`addComment`, `addCommentBefore/After`, `deleteComment`), visual marks (emoji toggles), `loadThread`/`saveThread`, and `updateSrcLink`.
+- **Commands**: defined in `package.json` `contributes.commands` (all under `category: "Ariadna"`) — includes node CRUD (`addChildNode`, `insertNodeBefore/After`, `deleteNode`), editing (`editCaption`, `editComment`), comments (`addComment`, `addCommentBefore/After`, `deleteComment`), visual marks (emoji toggles), `loadThread`/`saveThread`, `updateSrcLink`, and `selectRootPath`.
 
 ## Data Model
 

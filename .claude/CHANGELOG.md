@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-02-19 12:16
+
+### Changed
+- Функция `insertNodeRelative()` теперь возвращает `Node | undefined` вместо `void` — позволяет вызывающему коду работать со вставленным узлом
+- Команды `ariadna.addChildNode`, `ariadna.insertNodeBefore`, `ariadna.insertNodeAfter` — после создания узла фокус автоматически переходит на него через `mainTreeView.reveal()` и вызов `ariadna.selectNode`
+
 ## 2026-02-15 11:34
 
 ### Added
