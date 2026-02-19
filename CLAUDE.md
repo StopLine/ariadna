@@ -18,6 +18,8 @@ Tests run inside VS Code Electron (downloaded automatically), not plain Node. To
 
 ## Architecture
 
+The codebase consists of two source files: `src/extension.ts` (all UI/command logic) and `src/model.ts` (data types and transformations).
+
 - **Entry point**: `src/extension.ts` — exports `activate()` and `deactivate()`. Contains two tree data providers:
   - `AriadnaTreeDataProvider` — sidebar tree view (`ariadnaView`) showing the thread hierarchy with drag-and-drop support.
   - `NodeDetailTreeProvider` — detail panel (`ariadnaDetail`) showing properties of the selected node or thread.

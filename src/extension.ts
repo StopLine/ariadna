@@ -452,10 +452,14 @@ async function loadThread(): Promise<void> {
     if (!await confirmSaveIfDirty()) {
         return;
     }
+    const defaultUri = lastLoadedUri
+        ? vscode.Uri.file(path.dirname(lastLoadedUri.fsPath))
+        : undefined;
     const uris = await vscode.window.showOpenDialog({
         canSelectMany: false,
         filters: { 'Ariadna Thread': ['json'] },
         title: 'Load Ariadna Thread',
+        defaultUri,
     });
     if (!uris || uris.length === 0) {
         return;
