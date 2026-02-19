@@ -59,6 +59,11 @@
         "category": "Ariadna"
       },
       {
+        "command": "ariadna.updateSrcLinkForNode",
+        "title": "Update from Editor",
+        "category": "Ariadna"
+      },
+      {
         "command": "ariadna.selectRootPath",
         "title": "Select Folder",
         "category": "Ariadna"
@@ -236,6 +241,11 @@
           "submenu": "ariadna.marksSubmenu",
           "when": "view == ariadnaView && viewItem == nodeItem",
           "group": "3_marks"
+        },
+        {
+          "command": "ariadna.updateSrcLinkForNode",
+          "when": "view == ariadnaView && viewItem == nodeItem",
+          "group": "4_update"
         },
         {
           "command": "ariadna.addComment",

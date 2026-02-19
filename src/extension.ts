@@ -503,7 +503,7 @@ async function loadThread(): Promise<void> {
     lastSelectedNodeId = null;
     saveState();
     addRecentThread(uris[0], data.title);
-treeDataProvider.refresh();
+    treeDataProvider.refresh();
     await detailProvider.showThread(currentThread);
 }
 
@@ -694,6 +694,11 @@ export function activate(context: vscode.ExtensionContext) {
                     preserveFocus: false,
                 });
             }
+        }),
+        vscode.commands.registerCommand('ariadna.updateSrcLinkForNode', async (node: Node) => {
+            await mainTreeView.reveal(node, { select: true, focus: true });
+            detailProvider.showNode(node);
+            vscode.commands.executeCommand('ariadna.updateSrcLink');
         }),
         vscode.commands.registerCommand('ariadna.updateSrcLink', async () => {
             const node = detailProvider.currentNode;
