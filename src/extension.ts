@@ -627,6 +627,8 @@ export function activate(context: vscode.ExtensionContext) {
             };
             lastLoadedUri = null;
             treeDataProvider.setThread(currentThread);
+            const newNode = createEmptyNode(currentThread, null);
+            currentThread.childs.push(newNode);
             clearDirty();
             lastSelectedNodeId = null;
             saveState();

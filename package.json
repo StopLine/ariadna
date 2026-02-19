@@ -4,7 +4,7 @@
   "description": "Tree view bookmarks extension for code analysis and documentation",
   "publisher": "AlexanderBatalschikov",
   "repository": "https://github.com/StopLine/ariadna.git",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -199,7 +199,7 @@
       "view/item/context": [
         {
           "command": "ariadna.updateSrcLink",
-          "when": "view == ariadnaDetail && viewItem == srcLinkField",
+          "when": "view == ariadnaDetail && viewItem == srcLinkField",          
           "group": "inline"
         },
         {
