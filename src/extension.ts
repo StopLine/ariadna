@@ -709,12 +709,17 @@ export function activate(context: vscode.ExtensionContext) {
             if (!editor) {
                 return;
             }
+            const updateCaption = ! node.caption || node.caption.trim() == 'New node' ||
+                (node.srcLink && node.caption.trim() == node.srcLink.lineContent.trim());
             const fsPath = editor.document.uri.fsPath;
             const srcPath = currentThread.rootPath && fsPath.startsWith(currentThread.rootPath)
                 ? path.relative(currentThread.rootPath, fsPath)
                 : fsPath;
             const lineNum = editor.selection.active.line + 1;
-            const lineContent = editor.document.lineAt(lineNum - 1).text;
+            const lineContent = editor.document.lineAt(lineNum - 1).text.trim();
+            if (updateCaption) {
+                node.caption = lineContent;
+            }
             node.srcLink = { path: srcPath, lineNum, lineContent };
             markDirty();
             await detailProvider.showNode(node);
