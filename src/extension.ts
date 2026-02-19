@@ -47,6 +47,9 @@ class AriadnaTreeDataProvider implements vscode.TreeDataProvider<TreeElement>, v
                     : vscode.TreeItemCollapsibleState.None,
             );
             item.tooltip = element.title ?? undefined;
+            const path = lastLoadedUri ? lastLoadedUri.fsPath : "";
+            if (path)
+                item.tooltip += '\n(' + path + ')';
             item.contextValue = 'threadItem';
             item.command = {
                 command: 'ariadna.selectThread',
@@ -500,7 +503,6 @@ async function loadThread(): Promise<void> {
     lastSelectedNodeId = null;
     saveState();
     addRecentThread(uris[0], data.title);
-    vscode.window.showInformationMessage(`Thread "${data.title}" loaded`);
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -580,7 +582,6 @@ export function activate(context: vscode.ExtensionContext) {
             lastSelectedNodeId = null;
             saveState();
             addRecentThread(uri, data.title);
-            vscode.window.showInformationMessage(`Thread "${data.title}" loaded`);
         }),
         vscode.commands.registerCommand('ariadna.saveThread', async () => {
             if (!currentThread) {
@@ -595,15 +596,21 @@ export function activate(context: vscode.ExtensionContext) {
             const json = JSON.stringify(data, null, 2) + '\n';
             await vscode.workspace.fs.writeFile(lastLoadedUri, Buffer.from(json, 'utf-8'));
             clearDirty();
-            vscode.window.showInformationMessage(`Thread saved to ${path.basename(lastLoadedUri.fsPath)}`);
         }),
         vscode.commands.registerCommand('ariadna.saveThreadAs', async () => {
             if (!currentThread) {
                 vscode.window.showWarningMessage('No thread loaded');
                 return;
             }
+            let uriToOpen = lastLoadedUri;
+            if (!uriToOpen) {
+                const state = context.workspaceState;
+                const uriStr = state.get<string>('ariadna.lastThreadUri');
+                uriToOpen = uriStr ? vscode.Uri.parse(path.dirname(uriStr)) : null;
+            }
+
             const uri = await vscode.window.showSaveDialog({
-                defaultUri: lastLoadedUri ?? undefined,
+                defaultUri: uriToOpen ?? undefined,
                 filters: { 'Ariadna Thread': ['json'] },
                 title: 'Save Ariadna Thread',
             });
@@ -617,6 +624,7 @@ export function activate(context: vscode.ExtensionContext) {
             clearDirty();
             addRecentThread(uri, currentThread.title);
             vscode.window.showInformationMessage(`Thread saved to ${path.basename(uri.fsPath)}`);
+            treeDataProvider.refresh();
         }),
         vscode.commands.registerCommand('ariadna.createNewThread', async () => {
             if (!await confirmSaveIfDirty()) {
@@ -636,7 +644,6 @@ export function activate(context: vscode.ExtensionContext) {
             currentThread.childs.push(newNode);
             clearDirty();
             lastSelectedNodeId = null;
-            saveState();
         }),
         vscode.commands.registerCommand('ariadna.selectThread', async (thread: AriadnaThread) => {
             const now = Date.now();
